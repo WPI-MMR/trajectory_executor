@@ -8,7 +8,7 @@ import serial
 class TrajectoryTracker(Node):
 
   def __init__(self):
-    super().__init__('trajectory_generator')
+    super().__init__('trajectory_tracker')
     self._publisher = self.create_publisher(
       SensorData,
       'traj_start_data',

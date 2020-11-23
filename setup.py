@@ -1,6 +1,6 @@
 from setuptools import setup
 
-package_name = 'trajectory_generator'
+package_name = 'trajectory_executor'
 
 setup(
     name=package_name,
@@ -15,7 +15,7 @@ setup(
     zip_safe=True,
     maintainer='Andrew Euredjian, Ankur Gupta, Revant Mahajan',
     maintainer_email='ageuredjian@wpi.edu, agupta4@wpi.edu, rmahajan@wpi.edu',
-    description='ROS node for generating a new trajectory based on current pose and desired end pose',
+    description='ROS package that handles all aspects required in executing a trajectory',
     license='MIT',
     tests_require=['pytest'],
     entry_points={
