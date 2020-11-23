@@ -20,8 +20,8 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'generator = trajectory_generator.generator:main',
-            'tracker = trajectory_generator.tracker:main'
+            'generator = trajectory_executor.generator:main',
+            'tracker = trajectory_executor.tracker:main'
         ],
     },
 )
