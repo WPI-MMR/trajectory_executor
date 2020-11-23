@@ -7,6 +7,7 @@ import serial
 
 
 class TrajectoryTracker(Node):
+  """Trajectory tracking for an 8-DOF quadruped robot given a trajectory"""
   def __init__(self):
     super().__init__('trajectory_tracker')
     self._publisher = self.create_publisher(
@@ -28,18 +29,20 @@ class TrajectoryTracker(Node):
       baudrate=115200
     )
 
-  # TODO: Add docstring and type hints
   def ard_check_callback(self):
+    """Check for serial data from Arduino"""
     if self.arduino_port.in_waiting:
       received_data = self.arduino_port.read(1)
       self.arduino_port.write(received_data)
 
   def timer_callback(self):
+    """Publish Arduino sensor data to ROS topic '/traj_start_data'"""
     msg = SensorData()
     msg.data = 'Arduino Sensor Data'
     self._publisher.publish(msg)
 
-  def new_traj_callback(self, msg):
+  def new_traj_callback(self, msg: Trajectory):
+    """Receive trajectory from generator node"""
     self.get_logger().info(msg.data)
 
 
