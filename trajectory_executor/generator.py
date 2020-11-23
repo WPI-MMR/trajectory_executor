@@ -3,8 +3,8 @@ from rclpy.node import Node
 
 from trajectory_interfaces.msg import Trajectory, SensorData
 
-class TrajectoryGenerator(Node):
 
+class TrajectoryGenerator(Node):
   def __init__(self):
     super().__init__('trajectory_generator')
     self._publisher = self.create_publisher(

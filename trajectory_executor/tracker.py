@@ -5,8 +5,8 @@ from trajectory_interfaces.msg import Trajectory, SensorData
 
 import serial
 
-class TrajectoryTracker(Node):
 
+class TrajectoryTracker(Node):
   def __init__(self):
     super().__init__('trajectory_tracker')
     self._publisher = self.create_publisher(
@@ -41,7 +41,6 @@ class TrajectoryTracker(Node):
 
   def new_traj_callback(self, msg):
     self.get_logger().info(msg.data)
-
 
 
 def main(args=None):
