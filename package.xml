@@ -1,11 +1,11 @@
 <?xml version="1.0"?>
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
-  <name>trajectory_generator</name>
+  <name>trajectory_executor</name>
   <version>0.0.0</version>
-  <description>ROS node for generating a new trajectory based on current pose and desired end pose</description>
+  <description>ROS package that handles all aspects required in executing a trajectory</description>
   <license>MIT</license>
-  <url type="website">https://github.com/WPI-MMR/trajectory_generator</url>
+  <url type="website">https://github.com/WPI-MMR/trajectory_executor</url>
 
   <maintainer email="ageuredjian@wpi.edu">Andrew Euredjian</maintainer>
   <maintainer email="agupta4@wpi.edu">Ankur Gupta</maintainer>

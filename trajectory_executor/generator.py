@@ -3,8 +3,9 @@ from rclpy.node import Node
 
 from trajectory_interfaces.msg import Trajectory, SensorData
 
-class TrajectoryGenerator(Node):
 
+class TrajectoryGenerator(Node):
+  """Trajectory generation for a defined 8-DOF quadruped robot"""
   def __init__(self):
     super().__init__('trajectory_generator')
     self._publisher = self.create_publisher(
@@ -17,7 +18,8 @@ class TrajectoryGenerator(Node):
       self.create_trajectory_callback,
       10)
 
-  def create_trajectory_callback(self, msg):
+  def create_trajectory_callback(self, msg: SensorData):
+    """Receive sensor data and publish trajectory to '/new_traj'"""
     self.get_logger().info('Received: {}'.format(msg.data))
 
     reply = Trajectory()
@@ -26,11 +28,9 @@ class TrajectoryGenerator(Node):
 
 def main(args=None):
   rclpy.init(args=args)
-
   trajectory_generator = TrajectoryGenerator()
 
   rclpy.spin(trajectory_generator)
-  
   rclpy.shutdown()
 
 
