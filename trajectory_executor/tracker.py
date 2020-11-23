@@ -45,11 +45,9 @@ class TrajectoryTracker(Node):
 
 def main(args=None):
   rclpy.init(args=args)
-
   trajectory_tracker = TrajectoryTracker()
 
   rclpy.spin(trajectory_tracker)
-
   rclpy.shutdown()
 
 

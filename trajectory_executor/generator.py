@@ -26,11 +26,9 @@ class TrajectoryGenerator(Node):
 
 def main(args=None):
   rclpy.init(args=args)
-
   trajectory_generator = TrajectoryGenerator()
 
   rclpy.spin(trajectory_generator)
-  
   rclpy.shutdown()
 
 
