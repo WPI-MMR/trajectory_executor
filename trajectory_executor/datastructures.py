@@ -12,8 +12,8 @@ serial_read_states = {
   'READ_L_ELBOW': 10,
   'READ_R_SHOULDER': 11,
   'READ_R_ELBOW': 12,
-  'READ_AT_GOAL': 13
-  'READ_CHECKSUM': 14,
+  'READ_AT_GOAL': 13,
+  'READ_CHECKSUM': 14
 }
 
 data_packet_struct = {
