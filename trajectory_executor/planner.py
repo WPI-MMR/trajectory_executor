@@ -3,6 +3,8 @@ from rclpy.node import Node
 
 from std_msgs.msg import String
 
+import json
+
 
 class Planner(Node):
 
@@ -17,8 +19,10 @@ class Planner(Node):
         self.i = 0
 
     def timer_callback(self):
+        dummy_jnt_values = [0,0,0,0,0,0,0,0,0,0,0,0]
+        json_string = json.dumps(dummy_jnt_values)
         msg = String()
-        msg.data = 'Hello World: %d' % self.i
+        msg.data = json_string #'Hello World: %d' % self.i
         self.publisher_.publish(msg)
         self.get_logger().info('Publishing: "%s"' % msg.data)
         self.i += 1
