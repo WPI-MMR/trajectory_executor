@@ -55,8 +55,7 @@ class SerialConnection(Node):
     calculated_checksum = 0
 
     # simple deepcopy for dicts with primitives datatypes
-    temp_packet = json.loads(json.dumps(data_packet_struct))
-    valid_packet = json.loads(json.dumps(data_packet_struct))
+    data_packet = json.loads(json.dumps(data_packet_struct))
 
     # read in sensor data from serial port
     while True:
@@ -78,101 +77,102 @@ class SerialConnection(Node):
           else:
             preamble_counter = self.preamble_length
         elif read_state == serial_read_states['READ_ROLL']:
-          temp_packet['roll'] += decoded_data
-          calculated_checksum += temp_packet['roll']
+          data_packet['roll'] += decoded_data
+          calculated_checksum += data_packet['roll']
           data_byte_counter -= 1
           if data_byte_counter == 0:
             data_byte_counter = self.data_byte_length
             read_state = serial_read_states['READ_PITCH']
         elif read_state == serial_read_states['READ_PITCH']:
-          temp_packet['pitch'] += decoded_data
-          calculated_checksum += temp_packet['pitch']
+          data_packet['pitch'] += decoded_data
+          calculated_checksum += data_packet['pitch']
           data_byte_counter -= 1
           if data_byte_counter == 0:
             data_byte_counter = self.data_byte_length
             read_state = serial_read_states['READ_YAW']
         elif read_state == serial_read_states['READ_YAW']:
-          temp_packet['yaw'] += decoded_data
-          calculated_checksum += temp_packet['yaw']
+          data_packet['yaw'] += decoded_data
+          calculated_checksum += data_packet['yaw']
           data_byte_counter -= 1
           if data_byte_counter == 0:
             data_byte_counter = self.data_byte_length
             read_state = serial_read_states['READ_L_HIP']
         elif read_state == serial_read_states['READ_L_HIP']:
-          temp_packet['l_hip'] += decoded_data
-          calculated_checksum += temp_packet['l_hip']
+          data_packet['l_hip'] += decoded_data
+          calculated_checksum += data_packet['l_hip']
           data_byte_counter -= 1
           if data_byte_counter == 0:
             data_byte_counter = self.data_byte_length
             read_state = serial_read_states['READ_L_KNEE']
         elif read_state == serial_read_states['READ_L_KNEE']:
-          temp_packet['l_knee'] += decoded_data
-          calculated_checksum += temp_packet['l_knee']
+          data_packet['l_knee'] += decoded_data
+          calculated_checksum += data_packet['l_knee']
           data_byte_counter -= 1
           if data_byte_counter == 0:
             data_byte_counter = self.data_byte_length
             read_state = serial_read_states['READ_R_HIP']
         elif read_state == serial_read_states['READ_R_HIP']:
-          temp_packet['r_hip'] += decoded_data
-          calculated_checksum += temp_packet['r_hip']
+          data_packet['r_hip'] += decoded_data
+          calculated_checksum += data_packet['r_hip']
           data_byte_counter -= 1
           if data_byte_counter == 0:
             data_byte_counter = self.data_byte_length
             read_state = serial_read_states['READ_R_KNEE']
         elif read_state == serial_read_states['READ_R_KNEE']:
-          temp_packet['r_knee'] += decoded_data
-          calculated_checksum += temp_packet['r_knee']
+          data_packet['r_knee'] += decoded_data
+          calculated_checksum += data_packet['r_knee']
           data_byte_counter -= 1
           if data_byte_counter == 0:
             data_byte_counter = self.data_byte_length
             read_state = serial_read_states['READ_L_SHOULDER']
         elif read_state == serial_read_states['READ_L_SHOULDER']:
-          temp_packet['l_shoulder'] += decoded_data
-          calculated_checksum += temp_packet['l_shoulder']
+          data_packet['l_shoulder'] += decoded_data
+          calculated_checksum += data_packet['l_shoulder']
           data_byte_counter -= 1
           if data_byte_counter == 0:
             data_byte_counter = self.data_byte_length
             read_state = serial_read_states['READ_L_ELBOW']
         elif read_state == serial_read_states['READ_L_ELBOW']:
-          temp_packet['l_elbow'] += decoded_data
-          calculated_checksum += temp_packet['l_elbow']
+          data_packet['l_elbow'] += decoded_data
+          calculated_checksum += data_packet['l_elbow']
           data_byte_counter -= 1
           if data_byte_counter == 0:
             data_byte_counter = self.data_byte_length
             read_state = serial_read_states['READ_R_SHOULDER']
         elif read_state == serial_read_states['READ_R_SHOULDER']:
-          temp_packet['r_shoulder'] += decoded_data
-          calculated_checksum += temp_packet['r_shoulder']
+          data_packet['r_shoulder'] += decoded_data
+          calculated_checksum += data_packet['r_shoulder']
           data_byte_counter -= 1
           if data_byte_counter == 0:
             data_byte_counter = self.data_byte_length
             read_state = serial_read_states['READ_R_ELBOW']
         elif read_state == serial_read_states['READ_R_ELBOW']:
-          temp_packet['r_elbow'] += decoded_data
-          calculated_checksum += temp_packet['r_elbow']
+          data_packet['r_elbow'] += decoded_data
+          calculated_checksum += data_packet['r_elbow']
           data_byte_counter -= 1
           if data_byte_counter == 0:
             data_byte_counter = self.data_byte_length
             read_state = serial_read_states['READ_AT_GOAL']
         elif read_state == serial_read_states['READ_AT_GOAL']:
-          temp_packet['at_goal'] = decoded_data
-          calculated_checksum += temp_packet['at_goal']
+          data_packet['at_goal'] = decoded_data
+          calculated_checksum += data_packet['at_goal']
           read_state = serial_read_states['READ_CHECKSUM']
         elif read_state == serial_read_states['READ_CHECKSUM']:
-          temp_packet['checksum'] = decoded_data
-          if temp_packet['checksum'] == 255 - (calculated_checksum % 256):
+          data_packet['checksum'] = decoded_data
+          if data_packet['checksum'] == 255 - (calculated_checksum % 256):
             # good packet, relay to tracking node
-            response.roll = temp_packet['roll']
-            response.pitch = temp_packet['pitch']
-            response.yaw = temp_packet['yaw']
-            response.l_hip = temp_packet['l_hip']
-            response.l_knee = temp_packet['l_hip']
-            response.r_hip = temp_packet['r_hip']
-            response.r_knee = temp_packet['r_hip']
-            response.l_shoulder = temp_packet['l_shoulder']
-            response.l_elbow = temp_packet['l_elbow']
-            response.r_shoulder = temp_packet['r_shoulder']
-            response.r_elbow = temp_packet['r_elbow']
+            response.roll = data_packet['roll']
+            response.pitch = data_packet['pitch']
+            response.yaw = data_packet['yaw']
+            response.l_hip = data_packet['l_hip']
+            response.l_knee = data_packet['l_hip']
+            response.r_hip = data_packet['r_hip']
+            response.r_knee = data_packet['r_hip']
+            response.l_shoulder = data_packet['l_shoulder']
+            response.l_elbow = data_packet['l_elbow']
+            response.r_shoulder = data_packet['r_shoulder']
+            response.r_elbow = data_packet['r_elbow']
+            response.at_goal = data_packet['at_goal']
             break
           else:
             # bad packet, retry request
