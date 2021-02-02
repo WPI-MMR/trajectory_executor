@@ -182,6 +182,7 @@ class SerialConnection(Node):
 
   def send_joint_angles_callback(self, msg: JointAngles):
     """Send new joint angles to Arduino for execution"""
+    # Split joint angles into two numbers since max value of a byte is 255
     ja_bytes = []
     ja_bytes.append(msg.left_hip // 256 if msg.left_hip // 256 > 0 else msg.left_hip)
     ja_bytes.append(msg.left_hip % 255 if msg.left_hip // 256 > 0 else 0)
@@ -200,9 +201,11 @@ class SerialConnection(Node):
     ja_bytes.append(msg.right_elbow // 256 if msg.right_elbow // 256 > 0 else msg.right_elbow)
     ja_bytes.append(msg.right_elbow % 255 if msg.right_elbow // 256 > 0 else 0)
 
+    # calculate checksum
     checksum = 255 - sum(ja_bytes) % 256
     ja_bytes.append(checksum)
 
+    # send preamble, joint angles, and checksum
     for i in range(self.preamble_length):
       self.arduino_port.write(struct.pack('>B', 255))
     for ja_byte in ja_bytes:
