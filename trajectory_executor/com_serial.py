@@ -182,7 +182,32 @@ class SerialConnection(Node):
 
   def send_joint_angles_callback(self, msg: JointAngles):
     """Send new joint angles to Arduino for execution"""
-    pass
+    ja_bytes = []
+    ja_bytes.append(msg.left_hip // 256 if msg.left_hip // 256 > 0 else msg.left_hip)
+    ja_bytes.append(msg.left_hip % 255 if msg.left_hip // 256 > 0 else 0)
+    ja_bytes.append(msg.left_knee // 256 if msg.left_knee // 256 > 0 else msg.left_knee)
+    ja_bytes.append(msg.left_knee % 255 if msg.left_knee // 256 > 0 else 0)
+    ja_bytes.append(msg.right_hip // 256 if msg.right_hip // 256 > 0 else msg.right_hip)
+    ja_bytes.append(msg.right_hip % 255 if msg.right_hip // 256 > 0 else 0)
+    ja_bytes.append(msg.right_knee // 256 if msg.right_knee // 256 > 0 else msg.right_knee)
+    ja_bytes.append(msg.right_knee % 255 if msg.right_knee // 256 > 0 else 0)
+    ja_bytes.append(msg.left_shoulder // 256 if msg.left_shoulder // 256 > 0 else msg.left_shoulder)
+    ja_bytes.append(msg.left_shoulder % 255 if msg.left_shoulder // 256 > 0 else 0)
+    ja_bytes.append(msg.left_elbow // 256 if msg.left_elbow // 256 > 0 else msg.left_elbow)
+    ja_bytes.append(msg.left_elbow % 255 if msg.left_elbow // 256 > 0 else 0)
+    ja_bytes.append(msg.right_shoulder // 256 if msg.right_shoulder // 256 > 0 else msg.right_shoulder)
+    ja_bytes.append(msg.right_shoulder % 255 if msg.right_shoulder // 256 > 0 else 0)
+    ja_bytes.append(msg.right_elbow // 256 if msg.right_elbow // 256 > 0 else msg.right_elbow)
+    ja_bytes.append(msg.right_elbow % 255 if msg.right_elbow // 256 > 0 else 0)
+
+    checksum = 255 - sum(ja_bytes) % 256
+    ja_bytes.append(checksum)
+
+    for i in range(self.preamble_length):
+      self.arduino_port.write(struct.pack('>B', 255))
+    for ja_byte in ja_bytes:
+      self.arduino_port.write(struct.pack('>B', ja_byte))
+
 
 
 def main(args=None):
