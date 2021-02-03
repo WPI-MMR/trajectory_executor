@@ -8,7 +8,7 @@ import serial
 import struct
 import json
 
-from datastructures import serial_read_states, data_packet_struct
+from trajectory_executor.datastructures import serial_read_states, data_packet_struct
 
 
 class SerialConnection(Node):
@@ -50,7 +50,7 @@ class SerialConnection(Node):
     self.arduino_port.write(struct.pack('>B', checksum))
 
     # prep to read serial data
-    read_state = serial_read_states['INIT']
+    read_state = serial_read_states['READ_PREAMBLE']
     preamble_counter = self.preamble_length
     data_byte_counter = self.data_byte_length
     calculated_checksum = 0
@@ -63,13 +63,10 @@ class SerialConnection(Node):
       if self.arduino_port.in_waiting > 0:
         # read and decode data from serial buffer
         recv_data = self.arduino_port.read(1)
-        decoded_data = int(received_data.hex(), 16)
+        decoded_data = int(recv_data.hex(), 16)
 
         # run through state machine
-        if read_state == serial_read_states['INIT']:
-          calculated_checksum = 0
-          read_state = serial_read_states['READ_PREAMBLE']
-        elif read_state == serial_read_states['READ_PREAMBLE']:
+        if read_state == serial_read_states['READ_PREAMBLE']:
           if decoded_data == 255:
             preamble_counter -= 1
             if preamble_counter == 0:
