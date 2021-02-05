@@ -204,6 +204,8 @@ class SerialConnection(Node):
     ja_bytes.append(checksum)
 
     # send preamble, joint angles, and checksum
+    # the '>B' parameter tells struct.pack how to encode the data
+    # (in this case encode into bytes)
     for i in range(self.preamble_length):
       self.arduino_port.write(struct.pack('>B', 255))
     for ja_byte in ja_bytes:
