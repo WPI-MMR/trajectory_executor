@@ -43,6 +43,8 @@ class SerialConnection(Node):
     checksum = 255 - (request_sensors * self.data_byte_length) % 256
 
     # send request for sensor data
+    # the '>B' parameter tells struct.pack how to encode the data
+    # (in this case encode into bytes)
     for i in range(self.preamble_length):
       self.arduino_port.write(struct.pack('>B', 255))
     for i in range(self.data_byte_length):
