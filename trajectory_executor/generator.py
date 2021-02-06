@@ -30,7 +30,9 @@ def main(args=None):
   rclpy.init(args=args)
   trajectory_generator = TrajectoryGenerator()
 
-  rclpy.spin(trajectory_generator)
+  while rclpy.ok():
+    rclpy.spin_once(trajectory_generator)
+
   rclpy.shutdown()
 
 

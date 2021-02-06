@@ -21,7 +21,10 @@ setup(
     entry_points={
         'console_scripts': [
             'generator = trajectory_executor.generator:main',
-            'tracker = trajectory_executor.tracker:main'
+            'tracker = trajectory_executor.tracker:main',
+            'com_serial = trajectory_executor.com_serial:main',
+            'com_socket = trajectory_executor.com_socket:main',
+            'serial_test = trajectory_executor.serial_test:main'
         ],
     },
 )
