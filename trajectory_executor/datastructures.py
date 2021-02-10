@@ -32,3 +32,18 @@ data_packet_struct = {
   'checksum': 0,
   'checksum_error': False,
 }
+
+sim_data_packet_struct = { 
+  "FL_HFE": 0,
+  "FL_KFE": 0, 
+  "FL_ANKLE": 0, 
+  "FR_HFE": 0, 
+  "FR_KFE": 0, 
+  "FR_ANKLE": 0, 
+  "HL_HFE": 0, 
+  "HL_KFE": 0, 
+  "HL_ANKLE": 0, 
+  "HR_HFE": 0, 
+  "HR_KFE": 0, 
+  "HR_ANKLE": 0
+}

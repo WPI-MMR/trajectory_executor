@@ -17,17 +17,27 @@ class SocketConnection(Node):
         'joint_angles',
         self.listener_callback,
         10)
-    self.subscription  # prevent unused variable warning
-    self.virtual_serial_comm = serial.Serial('/dev/pts/5')
+
+    # TODO: Make this into a ros parameter
+    self.virtual_serial_comm = serial.Serial('/dev/pts/2')
 
   def listener_callback(self, msg):
-    try: 
-      self.virtual_serial_comm.write((msg.data + '\n').encode())
+    try:
+      # Try to import the EOL from other package 
+      self.virtual_serial_comm.write(msg.data.encode() + b'\r\n')
     except SerialException:
       # TODO: Change this to error level in a seperate commit
-      self.get_logger().info('Cannot use serial port. Check if dummy serial port is active, serial port number is correct and restart the program')
+      self.get_logger().error('Cannot use serial port.' \
+       ' Check if dummy serial port is active,' \
+       ' serial port number is correct and restart the program')
     else:
       self.get_logger().info('Passing along: "%s"' % msg.data)
+
+      res = b''
+      while not res.endswith(b'\r\n'):
+        res += self.virtual_serial_comm.read()
+      
+      print('Response: {}'.format(res))    
 
 
 def main(args=None):

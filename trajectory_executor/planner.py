@@ -16,16 +16,27 @@ class Planner(Node):
             10)
         timer_period = 5  # seconds
         self.timer = self.create_timer(timer_period, self.timer_callback)
-        self.i = 0
 
     def timer_callback(self):
-        dummy_jnt_values = [0,0,0,0,0,0,0,0,0,0,0,0]
+        dummy_jnt_values = { 
+            "FL_HFE": 3.9571158441228693,
+            "FL_KFE": -3.705995755504008, 
+            "FL_ANKLE": 0.0, 
+            "FR_HFE": -6.240330487904615, 
+            "FR_KFE": 4.285736406870781, 
+            "FR_ANKLE": 0.0, 
+            "HL_HFE": -0.32403276755326144, 
+            "HL_KFE": -5.4244141069928276, 
+            "HL_ANKLE": 0.0, 
+            "HR_HFE": -4.428453979549971, 
+            "HR_KFE": -2.745596111102513, 
+            "HR_ANKLE": 0.0
+        }
         json_string = json.dumps(dummy_jnt_values)
         msg = String()
-        msg.data = json_string #'Hello World: %d' % self.i
+        msg.data = "ACTION" + json_string 
         self.publisher_.publish(msg)
         self.get_logger().info('Publishing: "%s"' % msg.data)
-        self.i += 1
 
 
 def main(args=None):
