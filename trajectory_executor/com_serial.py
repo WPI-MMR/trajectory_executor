@@ -40,15 +40,14 @@ class SerialConnection(Node):
   def sensor_data_request_callback(self, request: SensorDataRequest, response: SensorDataRequest):
     """Ping Arduino for sensor data"""
     request_sensors = 1
-    checksum = 255 - (request_sensors * self.data_byte_length) % 256
+    checksum = 255 - request_sensors % 256
 
     # send request for sensor data
     # the '>B' parameter tells struct.pack how to encode the data
     # (in this case encode into bytes)
     for i in range(self.preamble_length):
       self.arduino_port.write(struct.pack('>B', 255))
-    for i in range(self.data_byte_length):
-      self.arduino_port.write(struct.pack('>B', request_sensors))
+    self.arduino_port.write(struct.pack('>B', request_sensors))
     self.arduino_port.write(struct.pack('>B', checksum))
 
     # prep to read serial data
@@ -175,8 +174,22 @@ class SerialConnection(Node):
             response.at_goal = data_packet['at_goal']
             break
           else:
-            # bad packet, retry request
-            return self.sensor_data_request_callback(request, response)
+            # bad packet, set values to -1 and let executor handle it
+            # TODO: We should probably add a "error" value in the message for
+            #       the executor to use
+            response.roll = -1
+            response.pitch = -1
+            response.yaw = -1
+            response.l_hip = -1
+            response.l_knee = -1
+            response.r_hip = -1
+            response.r_knee = -1
+            response.l_shoulder = -1
+            response.l_elbow = -1
+            response.r_shoulder = -1
+            response.r_elbow = -1
+            response.at_goal = -1
+            break
 
     return response
 
@@ -184,6 +197,7 @@ class SerialConnection(Node):
     """Send new joint angles to Arduino for execution"""
     # Split joint angles into two numbers since max value of a byte is 255
     ja_bytes = []
+    ja_bytes.append(0) # data request byte
     ja_bytes.append(255 if msg.left_hip // 256 > 0 else msg.left_hip)
     ja_bytes.append(msg.left_hip % 255 if msg.left_hip // 256 > 0 else 0)
     ja_bytes.append(255 if msg.left_knee // 256 > 0 else msg.left_knee)
