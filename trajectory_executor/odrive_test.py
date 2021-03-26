@@ -39,8 +39,11 @@ def main(args=None):
   angles.right_shoulder = random.randint(0, 359)
   angles.right_elbow = random.randint(0, 359)
 
-  odrive_tester.publish(angles)
-  rclpy.spinOnce(odrive_tester)
+  odrive_tester.get_logger().info("Sending joint angles")
+  odrive_tester.publisher.publish(angles)
+  rclpy.spin_once(odrive_tester)
+  odrive_tester.destroy_node()
+  rclpy.shutdown()
 
   # while rclpy.ok():
   #   rclpy.spinOnce(odrive_tester)
