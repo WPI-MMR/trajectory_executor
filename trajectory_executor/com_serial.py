@@ -61,11 +61,13 @@ class SerialConnection(Node):
 
     # simple deepcopy for dicts with primitives datatypes
     data_packet = json.loads(json.dumps(data_packet_struct))
+    read_corrupted = False
 
     # read in sensor data from serial port
     while rclpy.ok():
       if self.arduino_port.in_waiting > 0:
         # read and decode data from serial buffer
+        read_corrupted = False
         recv_data = self.arduino_port.read(1)
         decoded_data = int(recv_data.hex(), 16)
 
@@ -180,6 +182,13 @@ class SerialConnection(Node):
             # bad packet, retry request
             # return self.sensor_data_request_callback(request, response)
             break
+
+      else:
+        if read_corrupted:
+          # self.get_logger().info("Read corrupted. Aborting")
+          break
+        else:
+          read_corrupted = True # gives a second chance in case we just missed a beat
 
     return response
 

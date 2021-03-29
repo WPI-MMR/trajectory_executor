@@ -6,6 +6,7 @@ from trajectory_interfaces.srv import SensorDataRequest
 
 import serial
 import random
+import time
 
 
 class OdriveTest(Node):
@@ -40,14 +41,13 @@ def main(args=None):
 
   while rclpy.ok():
     angles.left_hip = random.randint(0, 359)
-    # angles.left_knee = random.randint(0, 359)
+    angles.left_knee = random.randint(0, 359)
     # angles.right_hip = random.randint(0, 359)
     # angles.right_knee = random.randint(0, 359)
     # angles.left_shoulder = random.randint(0, 359)
     # angles.left_elbow = random.randint(0, 359)
     # angles.right_shoulder = random.randint(0, 359)
     # angles.right_elbow = random.randint(0, 359)
-    angles.left_knee = 0
     angles.right_hip = 0
     angles.right_knee = 0
     angles.left_shoulder = 0
@@ -86,8 +86,6 @@ def main(args=None):
   odrive_tester.destroy_node()
   rclpy.shutdown()
 
-  # while rclpy.ok():
-  #   rclpy.spinOnce(odrive_tester)
 
 
 if __name__ == "__main__":
