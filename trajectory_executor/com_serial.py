@@ -39,6 +39,8 @@ class SerialConnection(Node):
 
   def sensor_data_request_callback(self, request: SensorDataRequest, response: SensorDataRequest):
     """Ping Arduino for sensor data"""
+    # self.get_logger().info("Requesting robot state")
+
     request_sensors = 1
     checksum = 255 - (request_sensors * self.data_byte_length) % 256
 
@@ -61,7 +63,7 @@ class SerialConnection(Node):
     data_packet = json.loads(json.dumps(data_packet_struct))
 
     # read in sensor data from serial port
-    while True:
+    while rclpy.ok():
       if self.arduino_port.in_waiting > 0:
         # read and decode data from serial buffer
         recv_data = self.arduino_port.read(1)
@@ -176,12 +178,15 @@ class SerialConnection(Node):
             break
           else:
             # bad packet, retry request
-            return self.sensor_data_request_callback(request, response)
+            # return self.sensor_data_request_callback(request, response)
+            break
 
     return response
 
   def send_joint_angles_callback(self, msg: JointAngles):
     """Send new joint angles to Arduino for execution"""
+    # self.get_logger().info("Sending joint angles")
+
     # Split joint angles into two numbers since max value of a byte is 255
     ja_bytes = []
     ja_bytes.append(255 if msg.left_hip // 256 > 0 else msg.left_hip)
