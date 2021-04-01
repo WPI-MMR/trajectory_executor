@@ -12,7 +12,7 @@ import time
 class OdriveTest(Node):
   """Tests sending a setpoint to the arduino/odrive and receiving tracking information"""
   def __init__(self):
-    super().__init__('odrive_text')
+    super().__init__('odrive_test')
 
     self.publisher = self.create_publisher(
       JointAngles,

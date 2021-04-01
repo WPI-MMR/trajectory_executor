@@ -6,7 +6,7 @@ from trajectory_interfaces.msg import JointAngles
 
 import serial
 import struct
-import json
+import copy
 
 from trajectory_executor.datastructures import serial_read_states, data_packet_struct
 
@@ -60,7 +60,7 @@ class SerialConnection(Node):
     calculated_checksum = 0
 
     # simple deepcopy for dicts with primitives datatypes
-    data_packet = json.loads(json.dumps(data_packet_struct))
+    data_packet = copy.deepcopy(data_packet_struct)
     read_corrupted = False
 
     # read in sensor data from serial port
