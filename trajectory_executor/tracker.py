@@ -1,7 +1,8 @@
 import rclpy
 from rclpy.node import Node
 
-from trajectory_interfaces.msg import Trajectory, SensorData
+from trajectory_interfaces.msg import JointAngles, Trajectory
+from trajectory_interfaces.srv import SensorDataRequest
 
 import serial
 
@@ -10,40 +11,53 @@ class TrajectoryTracker(Node):
   """Trajectory tracking for an 8-DOF quadruped robot given a trajectory"""
   def __init__(self):
     super().__init__('trajectory_tracker')
-    self._publisher = self.create_publisher(
-      SensorData,
-      'traj_start_data',
+    self.ja_pub = self.create_publisher(
+      JointAngles,
+      'joint_angles',
       10)
-    self._subscription = self.create_subscription(
+
+    self.traj_sub = self.create_subscription(
       Trajectory,
-      'new_traj',
-      self.new_traj_callback,
+      'trajectory',
+      self.traj_callback,
       10)
 
-    timer_period = 2 # seconds
-    self.timer = self.create_timer(timer_period, self.timer_callback)
-    self.ard_check = self.create_timer(0.1, self.ard_check_callback)
+    self.srv_client = self.create_client(
+      SensorDataRequest,
+      'sensor_data_request')
 
-    self.arduino_port = serial.Serial(
-      port="/dev/ttyAMA1",  # TODO: evaluate if we should change to cli flag
-      baudrate=115200
-    )
+    while not self.srv_client.wait_for_service(timeout_sec=1.0):
+      self.get_logger().info("Serial service inactive, waiting...")
 
-  def ard_check_callback(self):
-    """Check for serial data from Arduino"""
-    if self.arduino_port.in_waiting:
-      received_data = self.arduino_port.read(1)
-      self.arduino_port.write(received_data)
+    self.req = SensorDataRequest.Request()
 
-  def timer_callback(self):
-    """Publish Arduino sensor data to ROS topic '/traj_start_data'"""
-    msg = SensorData()
-    msg.data = 'Arduino Sensor Data'
-    self._publisher.publish(msg)
+  def send_data_request(self):
+    self.req.requested = True
+    self.future = self.srv_client.call_async(self.req)
 
-  def new_traj_callback(self, msg: Trajectory):
+  def traj_callback(self, traj: Trajectory):
     """Receive trajectory from generator node"""
-    self.get_logger().info(msg.data)
+    self.get_logger.info("Trajectory received. Executing...")
+    for ja in traj:
+      self.ja_pub.publish(ja)
+      goal = False
+
+      while rclpy.ok():
+        self.send_data_request()
+        while rclpy.ok():
+          # rclpy.spin_once(self)
+          if self.future.done():
+            try:
+              response = self.future.result()
+            except Exception as e:
+              self.get_logger().warn(f"Service call failed {e}")
+            else:
+              if response.at_goal:
+                goal = True
+              break
+
+        if goal:
+          break
 
 
 def main(args=None):
