@@ -42,15 +42,14 @@ class SerialConnection(Node):
     # self.get_logger().info("Requesting robot state")
 
     request_sensors = 1
-    checksum = 255 - (request_sensors * self.data_byte_length) % 256
+    checksum = 255 - request_sensors % 256
 
     # send request for sensor data
     # the '>B' parameter tells struct.pack how to encode the data
     # (in this case encode into bytes)
     for i in range(self.preamble_length):
       self.arduino_port.write(struct.pack('>B', 255))
-    for i in range(self.data_byte_length):
-      self.arduino_port.write(struct.pack('>B', request_sensors))
+    self.arduino_port.write(struct.pack('>B', request_sensors))
     self.arduino_port.write(struct.pack('>B', checksum))
 
     # prep to read serial data
@@ -198,6 +197,7 @@ class SerialConnection(Node):
 
     # Split joint angles into two numbers since max value of a byte is 255
     ja_bytes = []
+    ja_bytes.append(0) # data request byte
     ja_bytes.append(255 if msg.left_hip // 256 > 0 else msg.left_hip)
     ja_bytes.append(msg.left_hip % 255 if msg.left_hip // 256 > 0 else 0)
     ja_bytes.append(255 if msg.left_knee // 256 > 0 else msg.left_knee)
