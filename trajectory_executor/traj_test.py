@@ -20,7 +20,32 @@ def main(args=None):
   rclpy.init(args=args)
   traj_tester = TrajTest()
 
+  num_ja = 10
   traj = Trajectory()
+
+  # Generate joint angles and fill trajectory object
+  for i in range(num_ja):
+    angles = JointAngles()
+
+    angles.left_hip = random.randint(0, 359)
+    angles.left_knee = random.randint(0, 359)
+    # angles.right_hip = random.randint(0, 359)
+    # angles.right_knee = random.randint(0, 359)
+    # angles.left_shoulder = random.randint(0, 359)
+    # angles.left_elbow = random.randint(0, 359)
+    # angles.right_shoulder = random.randint(0, 359)
+    # angles.right_elbow = random.randint(0, 359)
+    angles.right_hip = 0
+    angles.right_knee = 0
+    angles.left_shoulder = 0
+    angles.left_elbow = 0
+    angles.right_shoulder = 0
+    angles.right_elbow = 0
+
+    traj.trajectory.append(angles)
+
+  # Publish new trajectory to ros topic
+  traj_tester.publisher.publish(traj)
 
   traj_tester.destroy_node()
   rclpy.shutdown()
