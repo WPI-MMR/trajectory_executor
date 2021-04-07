@@ -6,7 +6,7 @@ from trajectory_interfaces.msg import JointAngles
 
 import serial
 import struct
-import json
+import copy
 
 from trajectory_executor.datastructures import serial_read_states, data_packet_struct
 
@@ -39,6 +39,8 @@ class SerialConnection(Node):
 
   def sensor_data_request_callback(self, request: SensorDataRequest, response: SensorDataRequest):
     """Ping Arduino for sensor data"""
+    # self.get_logger().info("Requesting robot state")
+
     request_sensors = 1
     checksum = 255 - request_sensors % 256
 
@@ -57,12 +59,14 @@ class SerialConnection(Node):
     calculated_checksum = 0
 
     # simple deepcopy for dicts with primitives datatypes
-    data_packet = json.loads(json.dumps(data_packet_struct))
+    data_packet = copy.deepcopy(data_packet_struct)
+    read_corrupted = False
 
     # read in sensor data from serial port
-    while True:
+    while rclpy.ok():
       if self.arduino_port.in_waiting > 0:
         # read and decode data from serial buffer
+        read_corrupted = False
         recv_data = self.arduino_port.read(1)
         decoded_data = int(recv_data.hex(), 16)
 
@@ -174,27 +178,23 @@ class SerialConnection(Node):
             response.at_goal = data_packet['at_goal']
             break
           else:
-            # bad packet, set values to -1 and let executor handle it
-            # TODO: We should probably add a "error" value in the message for
-            #       the executor to use
-            response.roll = -1
-            response.pitch = -1
-            response.yaw = -1
-            response.l_hip = -1
-            response.l_knee = -1
-            response.r_hip = -1
-            response.r_knee = -1
-            response.l_shoulder = -1
-            response.l_elbow = -1
-            response.r_shoulder = -1
-            response.r_elbow = -1
-            response.at_goal = -1
+            # bad packet, retry request
+            # return self.sensor_data_request_callback(request, response)
             break
+
+      else:
+        if read_corrupted:
+          # self.get_logger().info("Read corrupted. Aborting")
+          break
+        else:
+          read_corrupted = True # gives a second chance in case we just missed a beat
 
     return response
 
   def send_joint_angles_callback(self, msg: JointAngles):
     """Send new joint angles to Arduino for execution"""
+    # self.get_logger().info("Sending joint angles")
+
     # Split joint angles into two numbers since max value of a byte is 255
     ja_bytes = []
     ja_bytes.append(0) # data request byte
