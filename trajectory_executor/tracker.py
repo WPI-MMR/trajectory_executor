@@ -30,6 +30,7 @@ class TrajectoryTracker(Node):
       self.get_logger().info("Serial service inactive, waiting...")
 
     self.req = SensorDataRequest.Request()
+    self.traj_available = False
 
   def send_data_request(self):
     self.req.requested = True
@@ -37,34 +38,66 @@ class TrajectoryTracker(Node):
 
   def traj_callback(self, traj: Trajectory):
     """Receive trajectory from generator node"""
-    self.get_logger.info("Trajectory received. Executing...")
-    for ja in traj:
-      self.ja_pub.publish(ja)
-      goal = False
+    self.get_logger().info("Trajectory received. Executing...")
+    self.traj = traj
+    self.traj_available = True
 
-      while rclpy.ok():
-        self.send_data_request()
-        while rclpy.ok():
-          # rclpy.spin_once(self)
-          if self.future.done():
-            try:
-              response = self.future.result()
-            except Exception as e:
-              self.get_logger().warn(f"Service call failed {e}")
-            else:
-              if response.at_goal:
-                goal = True
+  def spin(self):
+    while rclpy.ok():
+      rclpy.spin_once(self)
+      if self.traj_available:
+        self.traj_available = False
+        for ja in self.traj.trajectory:
+          self.ja_pub.publish(ja)
+          goal = False
+
+          while rclpy.ok():
+            self.send_data_request()
+            while rclpy.ok():
+              rclpy.spin_once(self)
+              if self.future.done():
+                try:
+                  response = self.future.done()
+                except Exception as e:
+                  self.get_logger().warn(f"Service call failed {e}")
+                else:
+                  if response.at_goal:
+                    goal = True
+                  break
+            if goal:
               break
 
-        if goal:
-          break
 
 
 def main(args=None):
   rclpy.init(args=args)
   trajectory_tracker = TrajectoryTracker()
 
-  rclpy.spin(trajectory_tracker)
+  # while rclpy.ok():
+  #   rclpy.spin_once(trajectory_tracker)
+  #   if trajectory_tracker.traj_available:
+  #     trajectory_tracker.traj_available = False
+  #     for ja in trajectory_tracker.traj.trajectory:
+  #       trajectory_tracker.publisher.publish(ja)
+  #       goal = False
+
+  #       while rclpy.ok():
+  #         trajectory_tracker.send_data_request()
+  #         while rclpy.ok():
+  #           rclpy.spin_once(trajectory_tracker)
+  #           if trajectory_tracker.future.done():
+  #             try:
+  #               response = trajectory_tracker.future.done()
+  #             except Exception as e:
+  #               self.get_logger().warn(f"Service call failed {e}")
+  #             else:
+  #               if response.at_goal:
+  #                 goal = True
+  #               break
+  #         if goal:
+  #           break
+
+  trajectory_tracker.spin()
   rclpy.shutdown()
 
 

@@ -33,7 +33,8 @@ class SerialConnection(Node):
     )
 
     self.arduino_port = serial.Serial(
-      port="/dev/ttyAMA1",  # TODO: evaluate if we should change to cli flag
+      # port="/dev/ttyAMA1",  # TODO: evaluate if we should change to cli flag
+      port="/dev/ttyS0",  # TODO: evaluate if we should change to cli flag
       baudrate=115200
     )
 

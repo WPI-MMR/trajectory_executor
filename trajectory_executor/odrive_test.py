@@ -40,14 +40,16 @@ def main(args=None):
   angles = JointAngles()
 
   while rclpy.ok():
-    angles.left_hip = random.randint(0, 359)
-    angles.left_knee = random.randint(0, 359)
+    # angles.left_hip = random.randint(0, 359)
+    # angles.left_knee = random.randint(0, 359)
     # angles.right_hip = random.randint(0, 359)
     # angles.right_knee = random.randint(0, 359)
     # angles.left_shoulder = random.randint(0, 359)
     # angles.left_elbow = random.randint(0, 359)
     # angles.right_shoulder = random.randint(0, 359)
     # angles.right_elbow = random.randint(0, 359)
+    angles.left_hip = 0
+    angles.left_knee = 0
     angles.right_hip = 0
     angles.right_knee = 0
     angles.left_shoulder = 0
