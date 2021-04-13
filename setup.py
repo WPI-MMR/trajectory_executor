@@ -17,7 +17,7 @@ setup(
     maintainer_email='ageuredjian@wpi.edu, agupta4@wpi.edu, rmahajan@wpi.edu',
     description='ROS package that handles all aspects required in executing a trajectory',
     license='MIT',
-    tests_require=['pytest'],
+    tests_require=['pytest', 'parameterized'],
     entry_points={
         'console_scripts': [
             'generator = trajectory_executor.generator:main',

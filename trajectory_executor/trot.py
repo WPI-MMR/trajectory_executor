@@ -1,4 +1,4 @@
-import rclpy
+import rclpy 
 from rclpy.node import Node
 
 from trajectory_interfaces.msg import JointAngles
@@ -12,6 +12,22 @@ def _set_angle_FOR(angle):
   if angle < 0:
     angle = 360 + angle
   return int(angle)
+
+
+QUAD_STANDING = {
+  'FL_HFE': 45,
+  'FL_KFE': -100,
+  'FL_ANKLE': 0,
+  'FR_HFE': 45,
+  'FR_KFE': -100,
+  'FR_ANKLE': 0,
+  'HL_HFE': 25,
+  'HL_KFE': -60,
+  'HL_ANKLE': 0,
+  'HR_HFE': 25,
+  'HR_KFE': -60,
+  'HR_ANKLE': 0,
+}
 
 
 class Trot(Node):
@@ -48,33 +64,33 @@ class Trot(Node):
   def send_angles(self):
     joint_msg = JointAngles()
     
-    joint_msg.left_hip = int(self.joints['HL_HFE'])
-    joint_msg.left_knee = int(self.joints['HL_KFE'])
-    joint_msg.right_hip = int(self.joints['HR_HFE'])
-    joint_msg.right_knee = int(self.joints['HR_KFE'])
-    joint_msg.left_shoulder = int(self.joints['FL_HFE'])
-    joint_msg.left_elbow = int(self.joints['FL_KFE'])
-    joint_msg.right_shoulder = int(self.joints['FR_HFE'])
-    joint_msg.right_elbow = int(self.joints['FR_KFE'])
+    joint_msg.left_hip = _set_angle_FOR(self.joints['HL_HFE'])
+    joint_msg.left_knee = _set_angle_FOR(self.joints['HL_KFE'])
+    joint_msg.right_hip = _set_angle_FOR(self.joints['HR_HFE'])
+    joint_msg.right_knee = _set_angle_FOR(self.joints['HR_KFE'])
+    joint_msg.left_shoulder = _set_angle_FOR(self.joints['FL_HFE'])
+    joint_msg.left_elbow = _set_angle_FOR(self.joints['FL_KFE'])
+    joint_msg.right_shoulder = _set_angle_FOR(self.joints['FR_HFE'])
+    joint_msg.right_elbow = _set_angle_FOR(self.joints['FR_KFE'])
 
     self.get_logger().debug('Sending the following robot configuration: {}'.format(self.joints))
     self.joint_publisher.publish(joint_msg)
 
   def FLHR_HFE(self, value):
-    self.joints['FL_HFE'] = -value
+    self.joints['FL_HFE'] = value
     self.joints['HR_HFE'] = value
 
   def FLHR_KFE(self, value):
     self.joints['FL_KFE'] = value
-    self.joints['HR_KFE'] = -value
+    self.joints['HR_KFE'] = value
 
   def FRHL_HFE(self, value):
     self.joints['FR_HFE'] = value
-    self.joints['HL_HFE'] = -value
+    self.joints['HL_HFE'] = value
 
   def FRHL_KFE(self, value):
-    self.joints['FR_KFE'] = -value
-    self.joints['HL_KFE'] = -value
+    self.joints['FR_KFE'] = value
+    self.joints['HL_KFE'] = value
 
 
 def trot(args=None):
@@ -85,30 +101,30 @@ def trot(args=None):
   # Initialize robot position
   trot.joints = {
     'FL_HFE': 45,
-    'FL_KFE': 90,
+    'FL_KFE': -90,
     'FL_ANKLE': 0,
-    'FR_HFE': -45,
+    'FR_HFE': 45,
     'FR_KFE': -90,
     'FR_ANKLE': 0,
     'HL_HFE': 45,
     'HL_KFE': -90,
     'HL_ANKLE': 0,
-    'HR_HFE': -45,
+    'HR_HFE': 45,
     'HR_KFE': -90,
     'HR_ANKLE': 0,
   }
   trot.send_angles()
+  input('waiting')
 
-  """
   # Robot configuration values
-  trot_hip_launch = -0.8
-  trot_knee_launch = 1.4
-  trot_launch_dur = 0.25
-  trot_knee_clearance = 2
-  trot_clearance_dur = 0.1
-  trot_hip_step = -0.05
-  trot_knee_step = 1.5
-  trot_step_dur = 0.1
+  trot_hip_launch = -0.8 * -180 / np.pi
+  trot_knee_launch = 1.4 * -180 / np.pi
+  trot_launch_dur = 0.25 * -180 / np.pi
+  trot_knee_clearance = 2 * -180 / np.pi
+  trot_clearance_dur = 0.1 * -180 / np.pi
+  trot_hip_step = -0.05 * -180 / np.pi
+  trot_knee_step = 1.5 * -180 / np.pi
+  trot_step_dur = 0.1 * -180 / np.pi
 
   # while True:
   # Get ready to launch FR and HL
@@ -117,6 +133,8 @@ def trot(args=None):
   trot.FRHL_KFE(trot_knee_clearance)
   trot.send_angles()
   time.sleep(trot_launch_dur)
+  
+  """
 
   # Make the FR and HL Movement
   trot.FRHL_HFE(trot_hip_step)
@@ -150,17 +168,17 @@ def calibrate(args=None):
   trot = Trot()
   
   # trot.joints = {
-  #   'FL_HFE': np.pi / 4,
-  #   'FL_KFE': np.pi / 2,
+  #   'FL_HFE': 45,
+  #   'FL_KFE': 90,
   #   'FL_ANKLE': 0,
-  #   'FR_HFE': -np.pi / 4,
-  #   'FR_KFE': -np.pi / 2,
+  #   'FR_HFE': -45,
+  #   'FR_KFE': -90,
   #   'FR_ANKLE': 0,
-  #   'HL_HFE': np.pi / 4,
-  #   'HL_KFE': -np.pi / 2,
+  #   'HL_HFE': 45,
+  #   'HL_KFE': -90,
   #   'HL_ANKLE': 0,
-  #   'HR_HFE': -np.pi / 4,
-  #   'HR_KFE': -np.pi / 2,
+  #   'HR_HFE': -45,
+  #   'HR_KFE': -90,
   #   'HR_ANKLE': 0,
   # }
   trot.joints = {
@@ -182,7 +200,35 @@ def calibrate(args=None):
   while True:
     try:
       key, _, value = input('Enter [JointID] [Value]: ').partition(' ')
-      trot.joints[key] = float(value)
+      if key.lower() == 'all':
+        for jkey in trot.joints.keys():
+          trot.joints[jkey] = float(value)
+      elif key.lower() == 'quad':
+        steps, _ , timing = value.partition(' ')
+
+        for i in range(int(steps)):
+          for k, v in QUAD_STANDING.items():
+            trot.joints[k] = int(v / int(steps) * (i + 1))
+          trot.send_angles()
+          time.sleep(float(timing))
+      elif key.lower() == 'new':
+        trot.joints = {
+          'FL_HFE': 35,
+          'FL_KFE': -80,
+          'FL_ANKLE': 0,
+          'FR_HFE': 35,
+          'FR_KFE': -80,
+          'FR_ANKLE': 0,
+          'HL_HFE': -35,
+          'HL_KFE': 80,
+          'HL_ANKLE': 0,
+          'HR_HFE': -35,
+          'HR_KFE': 80,
+          'HR_ANKLE': 0,
+        }
+        trot.send_angles()
+      else:
+        trot.joints[key] = float(value)
       trot.send_angles()
 
     except KeyboardInterrupt:
