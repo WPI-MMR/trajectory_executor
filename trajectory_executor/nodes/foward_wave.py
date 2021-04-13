@@ -3,7 +3,7 @@ from rclpy.node import Node
 
 from trajectory_interfaces.msg import JointAngles
 from trajectory_interfaces.srv import SensorDataRequest
-from trajectory_executor import algos
+from trajectory_executor.algos.foward_wave import ForwardWave
 
 from simple_term_menu import TerminalMenu
 
@@ -14,13 +14,14 @@ def _set_angle_FOR(angle):
   return int(angle)
 
 
-class FowardWaveNode(algos.ForwardWave, Node):
+class FowardWaveNode(Node, ForwardWave):
   def __init__(self, args, interpolation_steps: int = 5, 
               interpolation_wait: float = 0.005):
-    algos.FowardWave.__init__(self, interpolation_steps, interpolation_wait)
-    Node.__init__(self, 'trot')
-
     rclpy.init(args=args)
+
+    Node.__init__(self, 'trot')
+    ForwardWave.__init__(self, interpolation_steps, interpolation_wait)
+
     # Create publisher
     self.joint_publisher = self.create_publisher(
       JointAngles, 'joint_angles', 10)
@@ -54,22 +55,22 @@ class FowardWaveNode(algos.ForwardWave, Node):
 
 
 def wave(args=None):
-  gait = FowardWaveNode(interpolation_steps=5, interpolation_wait=0.005)
+  gait = FowardWaveNode(args, interpolation_steps=5, interpolation_wait=0.005)
   gait.run()
   gait.close()
 
 
 def interactive(args=None):
-  gait = FowardWaveNode(interpolation_steps=5, interpolation_wait=0.005)
+  gait = FowardWaveNode(args, interpolation_steps=5, interpolation_wait=0.005)
 
   while True:
     options = (
       '[h] Home',
       '[j] Single Joint Control',
-      '[a] Adjust Interpolation'
+      '[a] Adjust Interpolation',
       '[x] Exit'
     )
-    menu = TerminalMenu(options, 'Robot Interactive Control Menu')
+    menu = TerminalMenu(options, title='Robot Interactive Control Menu')
     choice_idx = menu.show()
 
     if choice_idx == 0:
@@ -95,8 +96,11 @@ def interactive(args=None):
         if key.lower() == 'all':
           for jkey in gait.joints.keys():
             gait.joints[jkey] = float(value)
-        if key.lower == 'exit':
+        elif key.lower() == 'exit':
           break
+        else:
+          gait.joints[key] = float(value)
+        gait.send_angles()
 
     elif choice_idx == 2:
       print(f'Current Interpolation Steps: {gait._inter_steps}')
