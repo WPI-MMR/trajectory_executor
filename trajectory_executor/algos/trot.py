@@ -58,32 +58,18 @@ class TrotAlgo(abc.ABC):
     self.joints['HL_KFE'] = value
 
   def prime(self):
-    # self.joints = {
-    #   'FL_HFE': 35,
-    #   'FL_KFE': -80,
-    #   'FL_ANKLE': 0,
-    #   'FR_HFE': 35,
-    #   'FR_KFE': -80,
-    #   'FR_ANKLE': 0,
-    #   'HL_HFE': -35,
-    #   'HL_KFE': 80,
-    #   'HL_ANKLE': 0,
-    #   'HR_HFE': -35,
-    #   'HR_KFE': 80,
-    #   'HR_ANKLE': 0,
-    # }
     self.joints = {
-      'FL_HFE': 0,
-      'FL_KFE': 0,
+      'FL_HFE': 35,
+      'FL_KFE': -80,
       'FL_ANKLE': 0,
-      'FR_HFE': 0,
-      'FR_KFE': 0,
-      'FR_ANKLE': 0, 
-      'HL_HFE': 0,
-      'HL_KFE': 0,
+      'FR_HFE': 35,
+      'FR_KFE': -80,
+      'FR_ANKLE': 0,
+      'HL_HFE': -35,
+      'HL_KFE': 80,
       'HL_ANKLE': 0,
-      'HR_HFE': 0,
-      'HR_KFE': 0,
+      'HR_HFE': -35,
+      'HR_KFE': 80,
       'HR_ANKLE': 0,
     }
     self.send_angles()
@@ -107,7 +93,9 @@ class TrotAlgo(abc.ABC):
 
   def run(self):
     self.reset()
-    input('Press any key to prime the trot...')
+    print('Priming in 1 second')
+    time.sleep(1)
+    # input('Press any key to prime the trot...')
 
     self.prime()
     input('Press any key to start the trot...')
@@ -133,7 +121,7 @@ if __name__ == '__main__':
       'HL_HFE': 1,
       'HL_KFE': 1,
       'HL_ANKLE': 1,
-      'HR_HFE': 1,
+      'HR_HFE': -1,
       'HR_KFE': 1,
       'HR_ANKLE': 1,
     }
