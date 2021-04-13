@@ -74,9 +74,9 @@ class TrotAlgo(abc.ABC):
     # }
     self.joints = {
       'FL_HFE': 0,
-      'FL_KFE': -80,
+      'FL_KFE': 0,
       'FL_ANKLE': 0,
-      'FR_HFE': 35,
+      'FR_HFE': 0,
       'FR_KFE': 0,
       'FR_ANKLE': 0, 
       'HL_HFE': 0,
@@ -165,7 +165,7 @@ if __name__ == '__main__':
 
     def _send_angles(self):
       rads = {joint: pos * np.pi / 180 for joint, pos in self.joints.items()}
-      action = [rads[j] + self.config.starting_joint_pos[j] * self.axis[j]
+      action = [(rads[j] * self.axis[j]) + self.config.starting_joint_pos[j] 
                 for j in self.env.joint_ordering]
       self.env.step(action)
 
