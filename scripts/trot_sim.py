@@ -26,5 +26,3 @@ config.starting_joint_pos = {
 }
 
 env = gym.make('solo8vanilla-realtime-v0', config=config)
-
-time.sleep(15)

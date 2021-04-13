@@ -30,6 +30,7 @@ QUAD_STANDING = {
 }
 
 
+
 class Trot(Node):
   def __init__(self) -> None:
     super().__init__('trot')
