@@ -3,7 +3,7 @@ import abc
 import time
 
 
-class TrotAlgo(abc.ABC):
+class ForwardWave(abc.ABC):
   def __init__(self, interpolation_steps: int = 5, 
                interpolation_wait: float = 0.005):
     # JOINTS ARE IN DEGREES
@@ -95,10 +95,9 @@ class TrotAlgo(abc.ABC):
     self.reset()
     print('Priming in 1 second')
     time.sleep(1)
-    # input('Press any key to prime the trot...')
 
     self.prime()
-    input('Press any key to start the trot...')
+    input('Press any key to start the gait...')
     
     
 if __name__ == '__main__':
@@ -110,7 +109,7 @@ if __name__ == '__main__':
   import numpy as np
   import time
 
-  class TrotSim(TrotAlgo):
+  class FowardWaveSim(ForwardWave):
     axis = {
       'FL_HFE': 1,
       'FL_KFE': -1,
@@ -161,6 +160,6 @@ if __name__ == '__main__':
       self.env.close()
 
 
-  sim = TrotSim()
+  sim = FowardWaveSim()
   sim.run()
   sim.close()
