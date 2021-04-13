@@ -11,7 +11,7 @@ setup(
             ['resource/' + package_name]),
         ('share/' + package_name, ['package.xml']),
     ],
-    install_requires=['setuptools'],
+    install_requires=['setuptools' ,'simple_term_menu'],
     zip_safe=True,
     maintainer='Andrew Euredjian, Ankur Gupta, Revant Mahajan',
     maintainer_email='ageuredjian@wpi.edu, agupta4@wpi.edu, rmahajan@wpi.edu',
@@ -29,6 +29,8 @@ setup(
             'traj_test = trajectory_executor.traj_test:main',
             'trot = trajectory_executor.trot:trot',
             'calibrate = trajectory_executor.trot:calibrate',
+            'wave = trajectory_executor.nodes.foward_wave:wave',
+            'interactive = trajectory_executor.nodes.foward_wave:interactive',
         ],
     },
 )
