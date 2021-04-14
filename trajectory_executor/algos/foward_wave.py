@@ -93,11 +93,28 @@ class ForwardWave(abc.ABC):
 
   def run(self):
     self.reset()
+
     print('Priming in 1 second')
     time.sleep(1)
-
     self.prime()
-    input('Press any key to start the gait...')
+
+    self.joints['FL_HFE'] += 30
+    self.joints['FL_KFE'] += -30
+    self.send_angles()
+    time.sleep(0.1)
+
+    self.joints['FR_HFE'] += 5
+    self.joints['HR_HFE'] += 5
+    self.joints['HL_HFE'] += 5
+    self.send_angles()
+    time.sleep(0.1)
+
+    time.sleep(.4)
+    self.joints['FL_HFE'] += -30
+    self.joints['FL_KFE'] += 30
+    self.send_angles()
+
+    input()
     
     
 if __name__ == '__main__':
@@ -112,17 +129,17 @@ if __name__ == '__main__':
   class FowardWaveSim(ForwardWave):
     axis = {
       'FL_HFE': 1,
-      'FL_KFE': -1,
+      'FL_KFE': 1,
       'FL_ANKLE': 1,
       'FR_HFE': -1,
-      'FR_KFE': 1,
+      'FR_KFE': -1,
       'FR_ANKLE': 1,
       'HL_HFE': 1,
       'HL_KFE': 1,
       'HL_ANKLE': 1,
       'HR_HFE': -1,
-      'HR_KFE': 1,
-      'HR_ANKLE': 1,
+      'HR_KFE': -1,
+      'HR_ANKLE': -1,
     }
     
     def __init__(self, interpolation_steps: int = 5, 
@@ -130,24 +147,23 @@ if __name__ == '__main__':
       super().__init__(interpolation_steps, interpolation_wait)
 
       self.config = solo8v2vanilla_realtime.RealtimeSolo8VanillaConfig()
-      self.config.urdf_path = 'assets/solo8_URDF_v3/solo8_URDF_v3.urdf'
+      self.config.urdf_path = 'assets/solo8_URDF_v4/solo8_URDF_v4.urdf'
 
       # Set the robot to quadrupedal standing
       self.config.starting_joint_pos = {
-        'FL_HFE': -np.pi / 4,
-        'FL_KFE': -np.pi / 2,
+        'FL_HFE': 0,
+        'FL_KFE': 0,
         'FL_ANKLE': 0,
-        'FR_HFE': np.pi / 4,
-        'FR_KFE': np.pi / 2,
+        'FR_HFE': 0,
+        'FR_KFE': 0,
         'FR_ANKLE': 0,
-        'HL_HFE': -np.pi / 4,
-        'HL_KFE': np.pi / 2,
-        'HL_ANKLE': np.pi / 2,
-        'HR_HFE': np.pi / 4,
-        'HR_KFE': np.pi / 2,
-        'HR_ANKLE': np.pi / 2
+        'HL_HFE': 0,
+        'HL_KFE': 0,
+        'HL_ANKLE': 0,
+        'HR_HFE': 0,
+        'HR_KFE': 0,
+        'HR_ANKLE': 0,
       }
-
       self.env = gym.make('solo8vanilla-realtime-v0', config=self.config)
 
     def _send_angles(self):
