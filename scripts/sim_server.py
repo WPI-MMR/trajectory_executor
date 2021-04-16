@@ -10,7 +10,6 @@ import numpy as np
 import socket
 import sys
 import threading
-import time
 import json
 
 
@@ -19,13 +18,35 @@ SIZE = 1024
 
 
 def env_socket(env, socket):
+  axis = {
+    'FL_HFE': 1,
+    'FL_KFE': 1,
+    'FL_ANKLE': 1,
+    'FR_HFE': -1,
+    'FR_KFE': -1,
+    'FR_ANKLE': 1,
+    'HL_HFE': 1,
+    'HL_KFE': 1,
+    'HL_ANKLE': 1,
+    'HR_HFE': -1,
+    'HR_KFE': -1,
+    'HR_ANKLE': -1,
+  }
+
   while True:
     print('Simulation ready, waiting for client...')
     connection, client_addr = socket.accept()
     
     print(f'Connection from {client_addr}')
-    data = connection.recv(SIZE)
-    print(data)
+    while connection:
+      try:
+        data = json.loads(connection.recv(SIZE).decode())
+        rads = {joint: pos * np.pi / 180 for joint, pos in data.items()} 
+        action = [rads[j] * axis[j] for j in env.joint_ordering]
+        print(action)
+        env.step(action)
+      except:
+        break
   
 
 config = solo8v2vanilla_realtime.RealtimeSolo8VanillaConfig()
@@ -55,20 +76,14 @@ socket.bind(('localhost', PORT))
 socket.listen()
 
 socket_thread = threading.Thread(target=env_socket, args=(env, socket))
+socket_thread.start()
 
-options = (
-  '[r] Reset',
-  '[x] Exit'
-)
 
-while True:
-  menu = TerminalMenu(options, title='Solo Sim Interactive Menu')
-  choice_idx = menu.show()
-  
-  if choice_idx == 0:
+try:
+  print('Simulation active. Prese enter to reset and ^C to exit.')
+  while True:
+    input()
     env.reset()
-  elif choice_idx == 1:
-    socket.close()
-    sys.exit(0)
-  else:
-    print('Invalid choice')
+except KeyboardInterrupt:
+  socket.close()
+  sys.exit(0)

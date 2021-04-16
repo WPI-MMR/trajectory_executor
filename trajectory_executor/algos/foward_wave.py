@@ -1,11 +1,17 @@
 import numpy as np
 import abc
 import time
+import json
+import socket
+
+
+SOCKET_ADDR = ('192.168.1.82', 42069)
 
 
 class ForwardWave(abc.ABC):
   def __init__(self, interpolation_steps: int = 5, 
-               interpolation_wait: float = 0.005):
+               interpolation_wait: float = 0.005,
+               use_socket: bool = False):
     # JOINTS ARE IN DEGREES
     self.joints = {
       'FL_HFE': 0,
@@ -25,10 +31,20 @@ class ForwardWave(abc.ABC):
     
     self._inter_steps = interpolation_steps
     self._inter_wait = interpolation_wait
+
+    if use_socket:
+      self.socket = socket.socket()
+      self.socket.connect(SOCKET_ADDR)
   
   @abc.abstractmethod
   def _send_angles(self):
     pass
+
+  def _send_via_socket(self):
+    try:
+      self.socket.send(json.dumps(self.joints))
+    except:
+      print('Problem sending {} to {}'.format(self.joints, SOCKET_ADDR))
   
   def send_angles(self):
     # interpolate the angles
@@ -38,6 +54,8 @@ class ForwardWave(abc.ABC):
         self.joints[j] = int(v + (goal[j] - v) / int(self._inter_steps) * (i + 1))
 
       self._send_angles()
+      if self.socket:
+        self._send_via_socket()
       time.sleep(self._inter_wait)
     self._prev_joints = goal
 
@@ -194,4 +212,6 @@ if __name__ == '__main__':
   sim = FowardWaveSim()
   sim.run()
   input()
+  import json
+  print(json.dumps(sim.joints))
   sim.close()
