@@ -72,7 +72,7 @@ env.obs_factory.register_observation(testing.CompliantObs(env.robot))
 
 
 socket = socket.socket()
-socket.bind(('localhost', PORT))
+socket.bind(('', PORT))
 socket.listen()
 
 socket_thread = threading.Thread(target=env_socket, args=(env, socket))
