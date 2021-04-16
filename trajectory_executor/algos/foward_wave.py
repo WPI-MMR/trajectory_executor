@@ -11,7 +11,7 @@ SOCKET_ADDR = ('192.168.1.82', 42069)
 class ForwardWave(abc.ABC):
   def __init__(self, interpolation_steps: int = 5, 
                interpolation_wait: float = 0.005,
-               use_socket: bool = False):
+               use_socket: bool = True):
     # JOINTS ARE IN DEGREES
     self.joints = {
       'FL_HFE': 0,
@@ -33,8 +33,13 @@ class ForwardWave(abc.ABC):
     self._inter_wait = interpolation_wait
 
     if use_socket:
-      self.socket = socket.socket()
-      self.socket.connect(SOCKET_ADDR)
+      try:
+        self.socket = socket.socket()
+        self.socket.connect(SOCKET_ADDR)
+      except Exception as e:
+        print('Error connecting to socket: {}'.format(e))
+        use_socket = False
+
   
   @abc.abstractmethod
   def _send_angles(self):
@@ -42,9 +47,10 @@ class ForwardWave(abc.ABC):
 
   def _send_via_socket(self):
     try:
-      self.socket.send(json.dumps(self.joints))
-    except:
+      self.socket.send(json.dumps(self.joints).encode())
+    except Exception as e:
       print('Problem sending {} to {}'.format(self.joints, SOCKET_ADDR))
+      print(e)
   
   def send_angles(self):
     # interpolate the angles
