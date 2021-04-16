@@ -93,29 +93,44 @@ class ForwardWave(abc.ABC):
 
   def run(self):
     self.reset()
-
-    print('Priming in 1 second')
-    time.sleep(1)
     self.prime()
 
-    self.joints['FL_HFE'] += 30
-    self.joints['FL_KFE'] += -30
-    self.send_angles()
-    time.sleep(0.1)
 
-    self.joints['FR_HFE'] += 5
-    self.joints['HR_HFE'] += 5
-    self.joints['HL_HFE'] += 5
-    self.send_angles()
-    time.sleep(0.1)
-
-    time.sleep(.4)
-    self.joints['FL_HFE'] += -30
-    self.joints['FL_KFE'] += 30
-    self.send_angles()
-
-    input()
+    input('Launch front left')
+    self.joints['FL_HFE'] += -10
+    self.joints['FL_KFE'] += 10
     
+    self.joints['FR_HFE'] += 10
+    self.joints['HL_HFE'] += -10
+    self.joints['HR_HFE'] += -10
+    self.joints['HR_KFE'] += 10
+    self.send_angles()
+
+    input('Extrend front left')
+    self.joints['FL_HFE'] += -20
+    self.joints['FL_KFE'] += 15
+    self.send_angles()
+
+    # Make less abrupt
+    input('Lean on to front')
+    self.joints['FR_HFE'] += 20
+    self.joints['FR_HFE'] += -10
+    self.joints['HL_HFE'] += -10
+    self.joints['HL_KFE'] += 10
+
+    self.joints['HR_HFE'] += 40
+    self.joints['HR_KFE'] += -30
+    self.joints['FL_HFE'] = 60
+    self.joints['FL_KFE'] += -45
+    self.send_angles()
+
+    input('HR step')
+    self.joints['HR_HFE'] += -45
+    self.joints['HR_KFE'] += 25
+    self.send_angles()
+   
+    input('wait')
+
     
 if __name__ == '__main__':
   import gym
@@ -178,4 +193,5 @@ if __name__ == '__main__':
 
   sim = FowardWaveSim()
   sim.run()
+  input()
   sim.close()
