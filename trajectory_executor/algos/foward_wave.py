@@ -117,6 +117,7 @@ class ForwardWave(abc.ABC):
 
   def run(self):
     self.reset()
+    input()
     self.prime()
 
 
