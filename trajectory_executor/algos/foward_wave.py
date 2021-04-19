@@ -1,3 +1,5 @@
+from typing import List, Tuple
+
 import numpy as np
 import abc
 import time
@@ -9,9 +11,13 @@ SOCKET_ADDR = ('192.168.1.82', 42069)
 
 
 class ForwardWave(abc.ABC):
+  leg_ordering = ('HL', 'FL', 'HR', 'FR')
+
   def __init__(self, interpolation_steps: int = 5, 
                interpolation_wait: float = 0.005,
-               use_socket: bool = True):
+               use_socket: bool = True,
+               transfer_phase: List[Tuple[float, Tuple[float, float]]] = None,
+               T: float = 1, L: float = 0.03):
     # JOINTS ARE IN DEGREES
     self.joints = {
       'FL_HFE': 0,
@@ -28,9 +34,6 @@ class ForwardWave(abc.ABC):
       'HR_ANKLE': 0,
     }
     self._prev_joints = self.joints.copy()
-    
-    self._inter_steps = interpolation_steps
-    self._inter_wait = interpolation_wait
 
     if use_socket:
       try:
@@ -39,7 +42,17 @@ class ForwardWave(abc.ABC):
       except Exception as e:
         print('Error connecting to socket: {}'.format(e))
         use_socket = False
+    
+    self._inter_steps = interpolation_steps
+    self._inter_wait = interpolation_wait
 
+    self.T = T
+    self.L = L
+    self.transfer_phase = transfer_phase
+
+    phase_end, _ = transfer_phase[-1]
+    self.duty_cycle = (self.T - phase_end) / self.T
+    self.transfer_intervals = self.generate_transfer_intervals()
   
   @abc.abstractmethod
   def _send_angles(self):
@@ -64,6 +77,28 @@ class ForwardWave(abc.ABC):
         self._send_via_socket()
       time.sleep(self._inter_wait)
     self._prev_joints = goal
+
+  def generate_transfer_intervals(self):
+    transfer_intervals = {}
+    for i, leg in enumerate(self.leg_ordering):
+      start = self.T / 4 * i
+      end = start + (1 - self.duty_cycle) * self.T
+
+      if end > self.T:
+        end = self.T - end
+
+      transfer_intervals[leg] = (start, end)
+    return transfer_intervals
+
+  def _in_transfer_interval(self, leg: str, t: float):
+    start, end = self.transfer_intervals[leg]
+    if start < end:
+      return start <= t <= end
+    else:
+      return t < end or t > start
+
+  def pos_for_phase(self, phi):
+    pass
 
   def FLHR_HFE(self, value):
     self.joints['FL_HFE'] = value
