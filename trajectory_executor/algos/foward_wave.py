@@ -1,6 +1,8 @@
 from typing import List, Tuple
 
 from matplotlib import pyplot as plt
+import matplotlib.animation as animation
+
 
 import numpy as np
 import abc
@@ -39,8 +41,13 @@ class ForwardWave(abc.ABC):
     }
     self._prev_joints = self.joints.copy()
 
-    self.femur_len = 160
-    self.shin_len = 170
+    # self.L1 = 160
+    # self.L2 = 170
+    # self.quad_height = 330
+
+    self.L1 = .2
+    self.L2 = .2
+    self.quad_height = .175
 
     if use_socket:
       try:
@@ -143,35 +150,77 @@ class ForwardWave(abc.ABC):
           (duty_len - distance_to_start) * m, 0)
         
     return positions
+  
+  def ikin(self, x, y, is_front_leg):
+    """Returns the joint angle of each 2 DOF leg
+    """
+    alpha, beta = 0, 0  
+    alpha  = math.atan2(x, y)
+    beta = math.acos((self.L1**2 + x**2 + y**2 - self.L2**2)/(2*self.L1*math.sqrt(x**2 + y**2)))
+    if is_front_leg:
+        theta1 = alpha + beta
+        theta2 = -math.acos((x**2 + y**2 - self.L1**2 - self.L2**2)/(2*self.L1*self.L2))
+    else:
+        theta1 = alpha - beta
+        theta2 = math.acos((x**2 + y**2 - self.L1**2 - self.L2**2)/(2*self.L1*self.L2))
+    # Converting theta1 according to the leg 0.
+    theta1 += np.pi/2
+    return theta1, theta2
 
-  def draw_leg(self, theta1, theta2, ax):
-    joint1 = np.radians(theta1)
-    joint2 = np.radians(theta2)
+  def init_plot(self, ax, leg):
+    ax.set_title(leg)
+    # ax.set_xlim([330, -330])
+    # ax.set_ylim([-330, 330])
+    ax.set_xlim([1, -1])
+    ax.set_ylim([-1, 1])
+    ax.set_xlabel("x")
+    ax.set_ylabel("y")
+
+    return ax.plot([], [])
+
+  def draw_leg(self, joint1, joint2, line):
     x = [0]
     y = [0]
     
     joint1 = -np.pi/2 + joint1
     
-    x1 = self.femur_len * math.cos(joint1)
-    y1 = self.femur_len * math.sin(joint1)
+    x1 = self.L1 * math.cos(joint1)
+    y1 = self.L1 * math.sin(joint1)
     
     x.append(x1)
     y.append(y1)
     
-    x2 = x1 + self.shin_len * math.cos(joint1 + joint2)
-    y2 = y1 + self.shin_len * math.sin(joint1 + joint2)
-    
-    print("X: {}".format(x2))
-    print("Y: {}".format(y2))
-    
+    x2 = x1 + self.L2 * math.cos(joint1 + joint2)
+    y2 = y1 + self.L2 * math.sin(joint1 + joint2)
+
     x.append(x2)
     y.append(y2)
 
-    ax.plot(x, y)
-    ax.set_xlim([330, -330])
-    ax.set_ylim([-330, 330])
-    ax.set_xlabel("x")
-    ax.set_ylabel("y")
+    line[0].set_data(x, y)
+
+  def animate(self, i, interval):
+    t = i * (interval / 1000) % self.T
+    pos = self.pos_for_phase(t)
+
+    for leg, (x, y) in pos.items():
+      j1, j2 = self.ikin(x, y - self.quad_height, 'F' in leg)
+      self.draw_leg(j1, j2, self.lines[leg])
+      
+    return [l for line in self.lines.values() for l in line]
+
+  def visualize_leg_movements(self):
+    frames = 5000
+    interval = 10
+
+    self.lines = {}
+    fig, axes = plt.subplots(1, 4)
+    for i, leg in enumerate(self.leg_ordering):
+      self.lines[leg] = self.init_plot(axes[i], leg)
+
+    ani = animation.FuncAnimation(fig, self.animate, frames=frames, 
+                                  interval=interval, blit=True, 
+                                  fargs=(interval,))
+    plt.show()
 
   def visualize_foot_pos(self):
     space = np.linspace(0, 1, 1000)
@@ -357,4 +406,5 @@ if __name__ == '__main__':
   # sim.run()
   # sim.visualize_foot_pos()
   # sim.draw_leg(30, 30)
+  sim.visualize_leg_movements()
   sim.close()
