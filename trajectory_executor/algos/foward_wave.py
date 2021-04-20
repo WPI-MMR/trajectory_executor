@@ -155,9 +155,6 @@ class ForwardWave(abc.ABC):
   def ikin(self, x, y, is_front_leg):
     """Returns the joint angle of each 2 DOF leg
     """
-    x *= 1000
-    y *= 1000 
-
     alpha, beta = 0, 0  
     alpha  = math.atan2(x, y)
     beta = math.acos((self.L1**2 + x**2 + y**2 - self.L2**2)/(2*self.L1*math.sqrt(x**2 + y**2)))
@@ -174,7 +171,7 @@ class ForwardWave(abc.ABC):
 
   def init_plot(self, ax, leg):
     ax.set_title(leg)
-    ax.set_xlim([330, -330])
+    ax.set_xlim([-330, 330])
     ax.set_ylim([-330, 50])
     ax.set_xlabel("x")
     ax.set_ylabel("y")
@@ -184,6 +181,8 @@ class ForwardWave(abc.ABC):
   def draw_leg(self, joint1, joint2, line):
     x = [0]
     y = [0]
+    
+    joint1 = -np.pi/2 + joint1
     
     x1 = self.L1* math.cos(joint1)
     y1 = self.L1*math.sin(joint1)
@@ -204,7 +203,7 @@ class ForwardWave(abc.ABC):
     pos = self.pos_for_phase(t)
 
     for leg, (x, y) in pos.items():
-      j1, j2 = self.ikin(x, y - self.quad_height / 1000, 'F' in leg)
+      j1, j2 = self.ikin(y * 1000 - self.quad_height, x * 1000, 'F' in leg)
       self.draw_leg(j1, j2, self.lines[leg])
       
     return [l for line in self.lines.values() for l in line]
@@ -308,15 +307,17 @@ class ForwardWave(abc.ABC):
         pos = self.pos_for_phase(t)
 
         for leg, (x, y) in pos.items():
-          j1, j2 = np.degrees(self.ikin(x, y - self.quad_height / 1000, 'H' in leg))
-
-          if 'H' in leg:
-            j1 += 180
+          # j1, j2 = np.degrees(self.ikin(x, y - self.quad_height / 1000, 'H' in leg))
+          j1, j2 = np.degrees(self.ikin(y * 1000 - self.quad_height, x * 1000, 'F' in leg))
+          # if 'H' in leg:
+          #   j1 += 180
+          j1 *= -1
+          j2 *= -1
 
           j1 = j1 if abs(j1) <= 180 else (360 - abs(j1)) * -1 * np.sign(j1)
           j2 = j2 if abs(j2) <= 180 else (360 - abs(j2)) * -1 * np.sign(j2)
 
-          self.joints[f'{leg}_HFE'] = -j1
+          self.joints[f'{leg}_HFE'] = j1
           self.joints[f'{leg}_KFE'] = j2
         
         self.send_angles()
@@ -364,7 +365,7 @@ class ForwardWave(abc.ABC):
     self.joints['HR_HFE'] += -45
     self.joints['HR_KFE'] += 25
     self.send_angles()
-   
+  
     input('wait')
 
     
@@ -425,22 +426,23 @@ if __name__ == '__main__':
       }
       self.env = gym.make('solo8vanilla-realtime-v0', config=self.config)
 
-    # def _send_angles(self):
-    #   rads = {joint: pos * np.pi / 180 for joint, pos in self.joints.items()}
-    #   action = [(rads[j] * self.axis[j]) + self.config.starting_joint_pos[j] 
-    #             for j in self.env.joint_ordering]
-    #   self.env.step(action)
     def _send_angles(self):
-      rads = {joint: pos for joint, pos in self.joints.items()}
+      rads = {joint: pos * np.pi / 180 for joint, pos in self.joints.items()}
       action = [(rads[j] * self.axis[j]) + self.config.starting_joint_pos[j] 
                 for j in self.env.joint_ordering]
       self.env.step(action)
+    # def _send_angles(self):
+    #   rads = {joint: pos for joint, pos in self.joints.items()}
+    #   action = [(rads[j] * self.axis[j]) + self.config.starting_joint_pos[j] 
+    #             for j in self.env.joint_ordering]
+    #   self.env.step(action)
 
     def close(self):
       self.env.close()
 
 
   sim = FowardWaveSim()
+  """"
   input()
   interval = .11
 
@@ -460,6 +462,7 @@ if __name__ == '__main__':
   }
   sim._send_angles()
   time.sleep(.2)
+  input()
 
   sim.joints = {
     'FL_KFE': 0.1513,
@@ -645,24 +648,15 @@ if __name__ == '__main__':
     'HR_KFE': 0,
     'HR_ANKLE': 0,
   }
-  # sim.joints = {
-  #   'FL_HFE': 35 * np.pi / 180,
-  #   'FL_KFE': -80 * np.pi / 180,
-  #   'FL_ANKLE': 0,
-  #   'FR_HFE': 35 * np.pi / 180,
-  #   'FR_KFE': -80 * np.pi / 180,
-  #   'FR_ANKLE': 0,
-  #   'HL_HFE': -35 * np.pi / 180,
-  #   'HL_KFE': 80 * np.pi / 180,
-  #   'HL_ANKLE': 0,
-  #   'HR_HFE': -35 * np.pi / 180,
-  #   'HR_KFE': 80 * np.pi / 180,
-  #   'HR_ANKLE': 0,
-  # }
   sim._send_angles()
-
   time.sleep(interval)
   input()
-  # sim.wave()
+
+  """
+  sim.wave()
   # sim.visualize_leg_movements()
+  # fig, axes = plt.subplots()
+  # line = sim.init_plot(axes, 'Leg')
+  # sim.draw_leg(np.pi / 4, -np.pi/3, line)
+  # plt.show()
   sim.close()
