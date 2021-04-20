@@ -130,12 +130,18 @@ class ForwardWave(abc.ABC):
           distance_to_start = start - phi
         else:
           distance_to_start = (self.T - phi) + start
-        positions[leg] = (-self.L / 2 + (self.T - distance_to_start) * self.L, 0)
+        duty_len = self.duty_cycle * self.T 
+
+        delta_x = self.transfer_phase[0][1][0] - self.transfer_phase[-1][1][0]
+        m = delta_x / duty_len
+
+        positions[leg] = (self.transfer_phase[-1][1][0] + \
+          (duty_len - distance_to_start) * m, 0)
         
     return positions
 
   def visualize_foot_pos(self):
-    space = np.linspace(0, 1)
+    space = np.linspace(0, 1, 1000)
     pos = collections.defaultdict(list)
 
     for phi in space:
