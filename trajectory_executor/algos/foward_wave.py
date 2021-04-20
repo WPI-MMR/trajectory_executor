@@ -172,7 +172,7 @@ class ForwardWave(abc.ABC):
   def init_plot(self, ax, leg):
     ax.set_title(leg)
     ax.set_xlim([330, -330])
-    ax.set_ylim([-330, 330])
+    ax.set_ylim([-330, 50])
     ax.set_xlabel("x")
     ax.set_ylabel("y")
 
@@ -182,17 +182,15 @@ class ForwardWave(abc.ABC):
     x = [0]
     y = [0]
     
-    joint1 = -np.pi/2 + joint1
-    
-    x1 = self.L1 * math.cos(joint1)
-    y1 = self.L1 * math.sin(joint1)
+    x1 = self.L1* math.cos(joint1)
+    y1 = self.L1*math.sin(joint1)
     
     x.append(x1)
     y.append(y1)
     
     x2 = x1 + self.L2 * math.cos(joint1 + joint2)
     y2 = y1 + self.L2 * math.sin(joint1 + joint2)
-
+    
     x.append(x2)
     y.append(y2)
 
@@ -294,6 +292,30 @@ class ForwardWave(abc.ABC):
     }
     self.send_angles()
 
+  def wave(self):
+    self.reset()
+    input()
+
+    interval = 1e-3
+
+    try:
+      i = 0
+      while True:
+        t = i * interval % self.T
+        pos = self.pos_for_phase(t)
+
+        for leg, (x, y) in pos.items():
+          j1, j2 = self.ikin(x, y - self.quad_height / 1000, 'F' in leg)
+          self.joints[f'{leg}_HFE'] = j1
+          self.joints[f'{leg}_KFE'] = j2
+        
+        self.send_angles()
+        i += 1
+        time.sleep(interval)
+
+    except KeyboardInterrupt as e:
+      pass
+
   def run(self):
     self.reset()
     input()
@@ -391,7 +413,7 @@ if __name__ == '__main__':
         'HR_KFE': 0,
         'HR_ANKLE': 0,
       }
-      # self.env = gym.make('solo8vanilla-realtime-v0', config=self.config)
+      self.env = gym.make('solo8vanilla-realtime-v0', config=self.config)
 
     def _send_angles(self):
       rads = {joint: pos * np.pi / 180 for joint, pos in self.joints.items()}
@@ -404,8 +426,9 @@ if __name__ == '__main__':
 
 
   sim = FowardWaveSim()
-  # sim.run()
+  input()
+  sim.wave()
   # sim.visualize_foot_pos()
-  # hsim.draw_leg(-50, -330)
-  sim.visualize_leg_movements()
+  # sim.draw_leg(-50, -330)
+  # sim.visualize_leg_movements()
   sim.close()
