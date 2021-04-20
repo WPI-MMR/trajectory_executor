@@ -23,7 +23,7 @@ class ForwardWave(abc.ABC):
                interpolation_wait: float = 0.005,
                use_socket: bool = False,
                transfer_phase: List[Tuple[float, Tuple[float, float]]] = None,
-               T: float = 1, L: float = 0.03):
+               T: float = .5, L: float = 0.1):
     # JOINTS ARE IN DEGREES
     self.joints = {
       'FL_HFE': 0,
@@ -306,8 +306,15 @@ class ForwardWave(abc.ABC):
         pos = self.pos_for_phase(t)
 
         for leg, (x, y) in pos.items():
-          j1, j2 = self.ikin(x, y - self.quad_height / 1000, 'F' in leg)
-          self.joints[f'{leg}_HFE'] = j1
+          j1, j2 = np.degrees(self.ikin(x, y - self.quad_height / 1000, 'H' in leg))
+
+          if 'F' in leg:
+            j1 += 180
+
+          j1 = j1 if abs(j1) <= 180 else (360 - abs(j1)) * -1 * np.sign(j1)
+          j2 = j2 if abs(j2) <= 180 else (360 - abs(j2)) * -1 * np.sign(j2)
+
+          self.joints[f'{leg}_HFE'] = -j1
           self.joints[f'{leg}_KFE'] = j2
         
         self.send_angles()
@@ -389,11 +396,11 @@ if __name__ == '__main__':
       super().__init__(interpolation_steps, interpolation_wait,
                        transfer_phase=[
                          (0.0, (-0.05, 0.0)),
-                         (0.05, (-0.05500000000000001, 0.0075)),
-                         (0.1, (-0.034999999999999996, 0.015)),
-                         (0.15, (0.010000000000000009, 0.015)),
-                         (0.2, (0.03000000000000002, 0.007499999999999997)),
-                         (0.25, (0.025000000000000022, -8.673617379884035e-19))
+                         (0.025, (-0.05500000000000001, 0.0075)),
+                         (0.05, (-0.034999999999999996, 0.015)),
+                         (0.075, (0.010000000000000009, 0.015)),
+                         (0.1, (0.03000000000000002, 0.007499999999999997)),
+                         (0.125, (0.025000000000000022, -8.673617379884035e-19))
                        ])
 
       self.config = solo8v2vanilla_realtime.RealtimeSolo8VanillaConfig()
@@ -414,7 +421,7 @@ if __name__ == '__main__':
         'HR_KFE': 0,
         'HR_ANKLE': 0,
       }
-      self.env = gym.make('solo8vanilla-realtime-v0', config=self.config)
+      # self.env = gym.make('solo8vanilla-realtime-v0', config=self.config)
 
     def _send_angles(self):
       rads = {joint: pos * np.pi / 180 for joint, pos in self.joints.items()}
@@ -427,8 +434,6 @@ if __name__ == '__main__':
 
 
   sim = FowardWaveSim()
-  sim.wave()
-  # sim.visualize_foot_pos()
-  # sim.draw_leg(-50, -330)
-  # sim.visualize_leg_movements()
+  # sim.wave()
+  sim.visualize_leg_movements()
   sim.close()
