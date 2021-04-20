@@ -157,15 +157,17 @@ class ForwardWave(abc.ABC):
     """
     x *= 1000
     y *= 1000 
+
     alpha, beta = 0, 0  
     alpha  = math.atan2(x, y)
     beta = math.acos((self.L1**2 + x**2 + y**2 - self.L2**2)/(2*self.L1*math.sqrt(x**2 + y**2)))
     if is_front_leg:
-        theta1 = alpha + beta
-        theta2 = -math.acos((x**2 + y**2 - self.L1**2 - self.L2**2)/(2*self.L1*self.L2))
-    else:
         theta1 = alpha - beta
         theta2 = math.acos((x**2 + y**2 - self.L1**2 - self.L2**2)/(2*self.L1*self.L2))
+    else:
+        theta1 = alpha + beta
+        theta2 = -math.acos((x**2 + y**2 - self.L1**2 - self.L2**2)/(2*self.L1*self.L2))
+
     # Converting theta1 according to the leg 0.
     theta1 += np.pi/2
     return theta1, theta2
@@ -297,7 +299,7 @@ class ForwardWave(abc.ABC):
     self.reset()
     input()
 
-    interval = 1e-3
+    interval = 1e-2
 
     try:
       i = 0
@@ -308,7 +310,7 @@ class ForwardWave(abc.ABC):
         for leg, (x, y) in pos.items():
           j1, j2 = np.degrees(self.ikin(x, y - self.quad_height / 1000, 'H' in leg))
 
-          if 'F' in leg:
+          if 'H' in leg:
             j1 += 180
 
           j1 = j1 if abs(j1) <= 180 else (360 - abs(j1)) * -1 * np.sign(j1)
@@ -421,7 +423,7 @@ if __name__ == '__main__':
         'HR_KFE': 0,
         'HR_ANKLE': 0,
       }
-      # self.env = gym.make('solo8vanilla-realtime-v0', config=self.config)
+      self.env = gym.make('solo8vanilla-realtime-v0', config=self.config)
 
     def _send_angles(self):
       rads = {joint: pos * np.pi / 180 for joint, pos in self.joints.items()}
@@ -434,6 +436,6 @@ if __name__ == '__main__':
 
 
   sim = FowardWaveSim()
-  # sim.wave()
-  sim.visualize_leg_movements()
+  sim.wave()
+  # sim.visualize_leg_movements()
   sim.close()
