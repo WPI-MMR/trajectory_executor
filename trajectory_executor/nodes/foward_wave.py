@@ -20,7 +20,15 @@ class FowardWaveNode(Node, ForwardWave):
     rclpy.init(args=args)
 
     Node.__init__(self, 'trot')
-    ForwardWave.__init__(self, interpolation_steps, interpolation_wait)
+    ForwardWave.__init__(self, interpolation_steps, interpolation_wait,
+                         transfer_phase=[
+                           (0.0, (-0.05, 0.0)),
+                           (0.025, (-0.05500000000000001, 0.0075)),
+                           (0.05, (-0.034999999999999996, 0.015)),
+                           (0.075, (0.010000000000000009, 0.015)),
+                           (0.1, (0.03000000000000002, 0.007499999999999997)),
+                           (0.125, (0.025000000000000022, -8.673617379884035e-19)),
+                         ])
 
     # Create publisher
     self.joint_publisher = self.create_publisher(
@@ -56,7 +64,7 @@ class FowardWaveNode(Node, ForwardWave):
 
 def wave(args=None):
   gait = FowardWaveNode(args, interpolation_steps=5, interpolation_wait=0.005)
-  gait.run()
+  gait.wave()
   gait.close()
 
 

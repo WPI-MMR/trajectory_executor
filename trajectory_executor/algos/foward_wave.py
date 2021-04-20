@@ -1,7 +1,7 @@
 from typing import List, Tuple
 
-from matplotlib import pyplot as plt
-import matplotlib.animation as animation
+# from matplotlib import pyplot as plt
+# import matplotlib.animation as animation
 
 
 import numpy as np
@@ -296,7 +296,7 @@ class ForwardWave(abc.ABC):
 
   def wave(self):
     self.reset()
-    input()
+    input('ready for wave')
 
     interval = .01
 
@@ -321,6 +321,9 @@ class ForwardWave(abc.ABC):
           self.joints[f'{leg}_KFE'] = j2
         
         self.send_angles()
+        if i == 0:
+          input('ready to walk damn')
+
         i += 1
         time.sleep(interval)
 
