@@ -108,7 +108,8 @@ class ForwardWave(abc.ABC):
       if self._in_transfer_interval(leg, phi):
         rel_phi = phi - start
         
-        for i, (timestep, (x, y)) in enumerate(phase):
+        for rev_i, (timestep, (x, y)) in enumerate(reversed(phase)):
+          i = len(phase) - rev_i - 1
           if timestep == rel_phi:
             positions[leg] = (x, y)
             break
@@ -134,7 +135,7 @@ class ForwardWave(abc.ABC):
     return positions
 
   def visualize_foot_pos(self):
-    space = np.linspace(0, .25)
+    space = np.linspace(0, 1)
     pos = collections.defaultdict(list)
 
     for phi in space:
@@ -143,9 +144,15 @@ class ForwardWave(abc.ABC):
       for leg in self.leg_ordering:
         pos[leg].append(positions[leg])
 
-    fig, axes = plt.subplots(1, 4)
+    fig, axes = plt.subplots(2, 4)
+    fig.suptitle('Horizontal & Vertical Displacement over time')
+    plt.setp(axes[0, 0], ylabel='x displacement')
+    plt.setp(axes[1, 0], ylabel='y displacement')
+
     for i, leg in enumerate(self.leg_ordering):
-      axes[i].plot([x for x,y in pos[leg]], [y for x,y in pos[leg]])
+      axes[0, i].set_title(leg)
+      axes[0, i].plot(space, [x for x,y in pos[leg]])
+      axes[1, i].plot(space, [y for x,y in pos[leg]])
 
     plt.show()
       
