@@ -299,7 +299,7 @@ class ForwardWave(abc.ABC):
     self.reset()
     input()
 
-    interval = 1e-2
+    interval = .01
 
     try:
       i = 0
@@ -425,8 +425,13 @@ if __name__ == '__main__':
       }
       self.env = gym.make('solo8vanilla-realtime-v0', config=self.config)
 
+    # def _send_angles(self):
+    #   rads = {joint: pos * np.pi / 180 for joint, pos in self.joints.items()}
+    #   action = [(rads[j] * self.axis[j]) + self.config.starting_joint_pos[j] 
+    #             for j in self.env.joint_ordering]
+    #   self.env.step(action)
     def _send_angles(self):
-      rads = {joint: pos * np.pi / 180 for joint, pos in self.joints.items()}
+      rads = {joint: pos for joint, pos in self.joints.items()}
       action = [(rads[j] * self.axis[j]) + self.config.starting_joint_pos[j] 
                 for j in self.env.joint_ordering]
       self.env.step(action)
@@ -436,6 +441,228 @@ if __name__ == '__main__':
 
 
   sim = FowardWaveSim()
-  sim.wave()
+  input()
+  interval = .11
+
+  sim.joints = {
+    'FL_KFE': 0.1255,
+    'FR_KFE': 0.1255,
+    'FL_HFE': 0.5618,
+    'FR_HFE': 0.5618,
+    'FL_ANKLE': 0,
+    'FR_ANKLE': 0,
+    'HL_HFE': -1.1908,
+    'HR_HFE': -1.1908,
+    'HL_KFE': 1.7208,
+    'HR_KFE': 1.7208,
+    'HL_ANKLE': np.pi / 2 - 0.1300,
+    'HR_ANKLE': np.pi / 2 - 0.1300,
+  }
+  sim._send_angles()
+  time.sleep(.2)
+
+  sim.joints = {
+    'FL_KFE': 0.1513,
+    'FR_KFE': 0.1513,
+    'FL_HFE': 0.5899,
+    'FR_HFE': 0.5899,
+    'FL_ANKLE': 0,
+    'FR_ANKLE': 0,
+    'HL_HFE': -1.0536,
+    'HR_HFE': -1.0536,
+    'HL_KFE': 1.6579,
+    'HR_KFE': 1.6579,
+    'HL_ANKLE': np.pi / 2 - 0.1412,
+    'HR_ANKLE': np.pi / 2 - 0.1412,
+  }
+  sim._send_angles()
+  time.sleep(interval)
+
+  sim.joints = {
+    'FL_KFE': 0.2670,
+    'FR_KFE': 0.2670,
+    'FL_HFE': 0.7159,
+    'FR_HFE': 0.7159,
+    'FL_ANKLE': 0,
+    'FR_ANKLE': 0,
+    'HL_HFE': -0.4391,
+    'HR_HFE': -0.4391,
+    'HL_KFE': 1.3762,
+    'HR_KFE': 1.3762,
+    'HL_ANKLE': np.pi / 2 - 0.1915,
+    'HR_ANKLE': np.pi / 2 - 0.1915,
+  }
+  sim._send_angles()
+  time.sleep(interval)
+
+  sim.joints = {
+    'FL_KFE': 0.4297,
+    'FR_KFE': 0.4297,
+    'FL_HFE': 0.8931,
+    'FR_HFE': 0.8931,
+    'FL_ANKLE': 0,
+    'FR_ANKLE': 0,
+    'HL_HFE': 0.4255,
+    'HR_HFE': 0.4255,
+    'HL_KFE': 0.9799,
+    'HR_KFE': 0.9799,
+    'HL_ANKLE': np.pi / 2 - 0.2621,
+    'HR_ANKLE': np.pi / 2 - 0.2621,
+  }
+  sim._send_angles()
+  time.sleep(interval)
+
+  sim.joints = {
+    'FL_KFE': 0.5454,
+    'FR_KFE': 0.5454,
+    'FL_HFE': 1.0191,
+    'FR_HFE': 1.0191,
+    'FL_ANKLE': 0,
+    'FR_ANKLE': 0,
+    'HL_HFE': 1.0400,
+    'HR_HFE': 1.0400,
+    'HL_KFE': 0.6983,
+    'HR_KFE': 0.6983,
+    'HL_ANKLE': np.pi / 2 - 0.3124,
+    'HR_ANKLE': np.pi / 2 - 0.3124,
+  }
+  sim._send_angles()
+  time.sleep(interval)
+
+  sim.joints = {
+    'FL_KFE': 0.5712,
+    'FR_KFE': 0.5712,
+    'FL_HFE': 1.0472,
+    'FR_HFE': 1.0472,
+    'FL_ANKLE': 0,
+    'FR_ANKLE': 0,
+    'HL_HFE': 1.1772,
+    'HR_HFE': 1.1772,
+    'HL_KFE': 0.6354,
+    'HR_KFE': 0.6354,
+    'HL_ANKLE': np.pi / 2 - 0.3236,
+    'HR_ANKLE': np.pi / 2 - 0.3236
+  }
+  sim._send_angles()
+  time.sleep(interval)
+
+  sim.joints = {
+    'FL_KFE': 0.5454,
+    'FR_KFE': 0.5454,
+    'FL_HFE': 1.0191,
+    'FR_HFE': 1.0191,
+    'FL_ANKLE': 0,
+    'FR_ANKLE': 0,
+    'HL_HFE': 1.0400,
+    'HR_HFE': 1.0400,
+    'HL_KFE': 0.6983,
+    'HR_KFE': 0.6983,
+    'HL_ANKLE': np.pi / 2 - 0.3124,
+    'HR_ANKLE': np.pi / 2 - 0.3124,
+  }
+  sim._send_angles()
+  time.sleep(interval)
+
+  sim.joints = {
+    'FL_KFE': 0.4297,
+    'FR_KFE': 0.4297,
+    'FL_HFE': 0.8931,
+    'FR_HFE': 0.8931,
+    'FL_ANKLE': 0,
+    'FR_ANKLE': 0,
+    'HL_HFE': 0.4255,
+    'HR_HFE': 0.4255,
+    'HL_KFE': 0.9799,
+    'HR_KFE': 0.9799,
+    'HL_ANKLE': np.pi / 2 - 0.2621,
+    'HR_ANKLE': np.pi / 2 - 0.2621,
+  }
+  sim._send_angles()
+  time.sleep(interval)
+
+  sim.joints = {
+    'FL_KFE': 0.2670,
+    'FR_KFE': 0.2670,
+    'FL_HFE': 0.7159,
+    'FR_HFE': 0.7159,
+    'FL_ANKLE': 0,
+    'FR_ANKLE': 0,
+    'HL_HFE': -0.4391,
+    'HR_HFE': -0.4391,
+    'HL_KFE': 1.3762,
+    'HR_KFE': 1.3762,
+    'HL_ANKLE': np.pi / 2 - 0.1915,
+    'HR_ANKLE': np.pi / 2 - 0.1915,
+  }
+  sim._send_angles()
+  time.sleep(interval)
+
+  sim.joints = {
+    'FL_KFE': 0.1513,
+    'FR_KFE': 0.1513,
+    'FL_HFE': 0.5899,
+    'FR_HFE': 0.5899,
+    'FL_ANKLE': 0,
+    'FR_ANKLE': 0,
+    'HL_HFE': -1.0536,
+    'HR_HFE': -1.0536,
+    'HL_KFE': 1.6579,
+    'HR_KFE': 1.6579,
+    'HL_ANKLE': np.pi / 2 - 0.1412,
+    'HR_ANKLE': np.pi / 2 - 0.1412,
+  }
+  sim._send_angles()
+  time.sleep(interval)
+
+  sim.joints = {
+    'FL_KFE': 0.1255,
+    'FR_KFE': 0.1255,
+    'FL_HFE': 0.5618,
+    'FR_HFE': 0.5618,
+    'FL_ANKLE': 0,
+    'FR_ANKLE': 0,
+    'HL_HFE': -1.1908,
+    'HR_HFE': -1.1908,
+    'HL_KFE': 1.7208,
+    'HR_KFE': 1.7208,
+    'HL_ANKLE': np.pi / 2 - 0.1300,
+    'HR_ANKLE': np.pi / 2 - 0.1300,
+  }
+  sim._send_angles()
+  time.sleep(interval)
+
+  sim.joints = {
+    'FL_HFE': 0,
+    'FL_KFE': 0,
+    'FL_ANKLE': 0,
+    'FR_HFE': 0,
+    'FR_KFE': 0,
+    'FR_ANKLE': 0,
+    'HL_HFE': 0,
+    'HL_KFE': 0,
+    'HL_ANKLE': 0,
+    'HR_HFE': 0,
+    'HR_KFE': 0,
+    'HR_ANKLE': 0,
+  }
+  # sim.joints = {
+  #   'FL_HFE': 35 * np.pi / 180,
+  #   'FL_KFE': -80 * np.pi / 180,
+  #   'FL_ANKLE': 0,
+  #   'FR_HFE': 35 * np.pi / 180,
+  #   'FR_KFE': -80 * np.pi / 180,
+  #   'FR_ANKLE': 0,
+  #   'HL_HFE': -35 * np.pi / 180,
+  #   'HL_KFE': 80 * np.pi / 180,
+  #   'HL_ANKLE': 0,
+  #   'HR_HFE': -35 * np.pi / 180,
+  #   'HR_KFE': 80 * np.pi / 180,
+  #   'HR_ANKLE': 0,
+  # }
+  sim._send_angles()
+
+  time.sleep(interval)
+  input()
+  # sim.wave()
   # sim.visualize_leg_movements()
   sim.close()
