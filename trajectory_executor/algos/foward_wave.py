@@ -8,6 +8,7 @@ import collections
 import time
 import json
 import socket
+import math
 
 
 SOCKET_ADDR = ('192.168.1.82', 42069)
@@ -37,6 +38,9 @@ class ForwardWave(abc.ABC):
       'HR_ANKLE': 0,
     }
     self._prev_joints = self.joints.copy()
+
+    self.femur_len = 160
+    self.shin_len = 170
 
     if use_socket:
       try:
@@ -139,6 +143,35 @@ class ForwardWave(abc.ABC):
           (duty_len - distance_to_start) * m, 0)
         
     return positions
+
+  def draw_leg(self, theta1, theta2, ax):
+    joint1 = np.radians(theta1)
+    joint2 = np.radians(theta2)
+    x = [0]
+    y = [0]
+    
+    joint1 = -np.pi/2 + joint1
+    
+    x1 = self.femur_len * math.cos(joint1)
+    y1 = self.femur_len * math.sin(joint1)
+    
+    x.append(x1)
+    y.append(y1)
+    
+    x2 = x1 + self.shin_len * math.cos(joint1 + joint2)
+    y2 = y1 + self.shin_len * math.sin(joint1 + joint2)
+    
+    print("X: {}".format(x2))
+    print("Y: {}".format(y2))
+    
+    x.append(x2)
+    y.append(y2)
+
+    ax.plot(x, y)
+    ax.set_xlim([330, -330])
+    ax.set_ylim([-330, 330])
+    ax.set_xlabel("x")
+    ax.set_ylabel("y")
 
   def visualize_foot_pos(self):
     space = np.linspace(0, 1, 1000)
@@ -322,5 +355,6 @@ if __name__ == '__main__':
 
   sim = FowardWaveSim()
   # sim.run()
-  sim.visualize_foot_pos()
+  # sim.visualize_foot_pos()
+  # sim.draw_leg(30, 30)
   sim.close()
