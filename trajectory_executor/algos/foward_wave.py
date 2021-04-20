@@ -50,8 +50,8 @@ class ForwardWave(abc.ABC):
     self.L = L
     self.transfer_phase = transfer_phase
 
-    phase_end, _ = transfer_phase[-1]
-    self.duty_cycle = (self.T - phase_end) / self.T
+    self.phase_len, _ = transfer_phase[-1]
+    self.duty_cycle = (self.T - self.phase_len) / self.T
     self.transfer_intervals = self.generate_transfer_intervals()
   
   @abc.abstractmethod
@@ -82,7 +82,7 @@ class ForwardWave(abc.ABC):
     transfer_intervals = {}
     for i, leg in enumerate(self.leg_ordering):
       start = self.T / 4 * i
-      end = start + (1 - self.duty_cycle) * self.T
+      end = start + self.phase_len
 
       if end > self.T:
         end = self.T - end
@@ -98,8 +98,39 @@ class ForwardWave(abc.ABC):
       return t < end or t > start
 
   def pos_for_phase(self, phi):
-    pass
+    positions = {}
+    phase = list(self.transfer_phase.items())
+    
+    for leg, (start, end) in self.transfer_intervals.items():
+      if self._in_transfer_interval(leg, phi):
+        rel_phi = phi - start
+        
+        for i, (timestep, (x, y)) in enumerate(phase):
+          if timestep == rel_phi:
+            positions[leg] = (x, y)
+            break
 
+          if rel_phi > timestep:
+            next_time, (next_x, next_y) = phase[i + 1]
+            
+            m_x = (next_x - x) / (next_time - timestep)
+            m_y = (next_y - y) / (next_time - timestep)
+
+            inter_x = x + (rel_phi - timestep) * m_x
+            inter_y = y + (rel_phi - timestep) * m_y
+
+            positions[leg] = (inter_x, inter_y)
+            break
+      else:
+        if phi < start:
+          distance_to_start = start - phi
+        else:
+          distance_to_start = (self.T - phi) + start
+        positions[leg] = (-self.L / 2 + (self.T - distance_to_start) * self.L, 0)
+        
+    return positions
+        
+      
   def FLHR_HFE(self, value):
     self.joints['FL_HFE'] = value
     self.joints['HR_HFE'] = value
