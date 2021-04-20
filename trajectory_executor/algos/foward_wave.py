@@ -1,10 +1,16 @@
 from typing import List, Tuple
 
+from matplotlib import pyplot as plt
+import matplotlib.animation as animation
+
+
 import numpy as np
 import abc
+import collections
 import time
 import json
 import socket
+import math
 
 
 SOCKET_ADDR = ('192.168.1.82', 42069)
@@ -35,6 +41,14 @@ class ForwardWave(abc.ABC):
     }
     self._prev_joints = self.joints.copy()
 
+    self.L1 = 160
+    self.L2 = 170
+    self.quad_height = 233
+
+    # self.L1 = .2
+    # self.L2 = .2
+    # self.quad_height = .175
+
     if use_socket:
       try:
         self.socket = socket.socket()
@@ -50,8 +64,8 @@ class ForwardWave(abc.ABC):
     self.L = L
     self.transfer_phase = transfer_phase
 
-    phase_end, _ = transfer_phase[-1]
-    self.duty_cycle = (self.T - phase_end) / self.T
+    self.phase_len, _ = transfer_phase[-1]
+    self.duty_cycle = (self.T - self.phase_len) / self.T
     self.transfer_intervals = self.generate_transfer_intervals()
   
   @abc.abstractmethod
@@ -82,7 +96,7 @@ class ForwardWave(abc.ABC):
     transfer_intervals = {}
     for i, leg in enumerate(self.leg_ordering):
       start = self.T / 4 * i
-      end = start + (1 - self.duty_cycle) * self.T
+      end = start + self.phase_len
 
       if end > self.T:
         end = self.T - end
@@ -98,8 +112,136 @@ class ForwardWave(abc.ABC):
       return t < end or t > start
 
   def pos_for_phase(self, phi):
-    pass
+    positions = {}
+    phase = list(self.transfer_phase)
+    
+    for leg, (start, end) in self.transfer_intervals.items():
+      if self._in_transfer_interval(leg, phi):
+        rel_phi = phi - start
+        
+        for rev_i, (timestep, (x, y)) in enumerate(reversed(phase)):
+          i = len(phase) - rev_i - 1
+          if timestep == rel_phi:
+            positions[leg] = (x, y)
+            break
 
+          if rel_phi > timestep:
+            next_time, (next_x, next_y) = phase[i + 1]
+            
+            m_x = (next_x - x) / (next_time - timestep)
+            m_y = (next_y - y) / (next_time - timestep)
+
+            inter_x = x + (rel_phi - timestep) * m_x
+            inter_y = y + (rel_phi - timestep) * m_y
+
+            positions[leg] = (inter_x, inter_y)
+            break
+      else:
+        if phi < start:
+          distance_to_start = start - phi
+        else:
+          distance_to_start = (self.T - phi) + start
+        duty_len = self.duty_cycle * self.T 
+
+        delta_x = self.transfer_phase[0][1][0] - self.transfer_phase[-1][1][0]
+        m = delta_x / duty_len
+
+        positions[leg] = (self.transfer_phase[-1][1][0] + \
+          (duty_len - distance_to_start) * m, 0)
+        
+    return positions
+  
+  def ikin(self, x, y, is_front_leg):
+    """Returns the joint angle of each 2 DOF leg
+    """
+    x *= 1000
+    y *= 1000 
+    alpha, beta = 0, 0  
+    alpha  = math.atan2(x, y)
+    beta = math.acos((self.L1**2 + x**2 + y**2 - self.L2**2)/(2*self.L1*math.sqrt(x**2 + y**2)))
+    if is_front_leg:
+        theta1 = alpha + beta
+        theta2 = -math.acos((x**2 + y**2 - self.L1**2 - self.L2**2)/(2*self.L1*self.L2))
+    else:
+        theta1 = alpha - beta
+        theta2 = math.acos((x**2 + y**2 - self.L1**2 - self.L2**2)/(2*self.L1*self.L2))
+    # Converting theta1 according to the leg 0.
+    theta1 += np.pi/2
+    return theta1, theta2
+
+  def init_plot(self, ax, leg):
+    ax.set_title(leg)
+    ax.set_xlim([330, -330])
+    ax.set_ylim([-330, 50])
+    ax.set_xlabel("x")
+    ax.set_ylabel("y")
+
+    return ax.plot([], [])
+
+  def draw_leg(self, joint1, joint2, line):
+    x = [0]
+    y = [0]
+    
+    x1 = self.L1* math.cos(joint1)
+    y1 = self.L1*math.sin(joint1)
+    
+    x.append(x1)
+    y.append(y1)
+    
+    x2 = x1 + self.L2 * math.cos(joint1 + joint2)
+    y2 = y1 + self.L2 * math.sin(joint1 + joint2)
+    
+    x.append(x2)
+    y.append(y2)
+
+    line[0].set_data(x, y)
+
+  def animate(self, i, interval):
+    t = i * (interval / 1000) % self.T
+    pos = self.pos_for_phase(t)
+
+    for leg, (x, y) in pos.items():
+      j1, j2 = self.ikin(x, y - self.quad_height / 1000, 'F' in leg)
+      self.draw_leg(j1, j2, self.lines[leg])
+      
+    return [l for line in self.lines.values() for l in line]
+
+  def visualize_leg_movements(self):
+    frames = 5000
+    interval = 10
+
+    self.lines = {}
+    fig, axes = plt.subplots(1, 4)
+    for i, leg in enumerate(self.leg_ordering):
+      self.lines[leg] = self.init_plot(axes[i], leg)
+
+    ani = animation.FuncAnimation(fig, self.animate, frames=frames, 
+                                  interval=interval, blit=True, 
+                                  fargs=(interval,))
+    plt.show()
+
+  def visualize_foot_pos(self):
+    space = np.linspace(0, 1, 1000)
+    pos = collections.defaultdict(list)
+
+    for phi in space:
+      positions = self.pos_for_phase(phi)
+
+      for leg in self.leg_ordering:
+        pos[leg].append(positions[leg])
+
+    fig, axes = plt.subplots(2, 4)
+    fig.suptitle('Horizontal & Vertical Displacement over time')
+    plt.setp(axes[0, 0], ylabel='x displacement')
+    plt.setp(axes[1, 0], ylabel='y displacement')
+
+    for i, leg in enumerate(self.leg_ordering):
+      axes[0, i].set_title(leg)
+      axes[0, i].plot(space, [x for x,y in pos[leg]])
+      axes[1, i].plot(space, [y for x,y in pos[leg]])
+
+    plt.show()
+      
   def FLHR_HFE(self, value):
     self.joints['FL_HFE'] = value
     self.joints['HR_HFE'] = value
@@ -149,6 +291,30 @@ class ForwardWave(abc.ABC):
       'HR_ANKLE': 0,
     }
     self.send_angles()
+
+  def wave(self):
+    self.reset()
+    input()
+
+    interval = 1e-3
+
+    try:
+      i = 0
+      while True:
+        t = i * interval % self.T
+        pos = self.pos_for_phase(t)
+
+        for leg, (x, y) in pos.items():
+          j1, j2 = self.ikin(x, y - self.quad_height / 1000, 'F' in leg)
+          self.joints[f'{leg}_HFE'] = j1
+          self.joints[f'{leg}_KFE'] = j2
+        
+        self.send_angles()
+        i += 1
+        time.sleep(interval)
+
+    except KeyboardInterrupt as e:
+      pass
 
   def run(self):
     self.reset()
@@ -219,7 +385,15 @@ if __name__ == '__main__':
     
     def __init__(self, interpolation_steps: int = 5, 
                 interpolation_wait: float = 0.005):
-      super().__init__(interpolation_steps, interpolation_wait)
+      super().__init__(interpolation_steps, interpolation_wait,
+                       transfer_phase=[
+                         (0.0, (-0.05, 0.0)),
+                         (0.05, (-0.05500000000000001, 0.0075)),
+                         (0.1, (-0.034999999999999996, 0.015)),
+                         (0.15, (0.010000000000000009, 0.015)),
+                         (0.2, (0.03000000000000002, 0.007499999999999997)),
+                         (0.25, (0.025000000000000022, -8.673617379884035e-19))
+                       ])
 
       self.config = solo8v2vanilla_realtime.RealtimeSolo8VanillaConfig()
       self.config.urdf_path = 'assets/solo8_URDF_v4/solo8_URDF_v4.urdf'
@@ -252,8 +426,9 @@ if __name__ == '__main__':
 
 
   sim = FowardWaveSim()
-  sim.run()
   input()
-  import json
-  print(json.dumps(sim.joints))
+  sim.wave()
+  # sim.visualize_foot_pos()
+  # sim.draw_leg(-50, -330)
+  # sim.visualize_leg_movements()
   sim.close()
