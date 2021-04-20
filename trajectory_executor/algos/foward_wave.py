@@ -41,13 +41,13 @@ class ForwardWave(abc.ABC):
     }
     self._prev_joints = self.joints.copy()
 
-    # self.L1 = 160
-    # self.L2 = 170
-    # self.quad_height = 330
+    self.L1 = 160
+    self.L2 = 170
+    self.quad_height = 233
 
-    self.L1 = .2
-    self.L2 = .2
-    self.quad_height = .175
+    # self.L1 = .2
+    # self.L2 = .2
+    # self.quad_height = .175
 
     if use_socket:
       try:
@@ -154,6 +154,8 @@ class ForwardWave(abc.ABC):
   def ikin(self, x, y, is_front_leg):
     """Returns the joint angle of each 2 DOF leg
     """
+    x *= 1000
+    y *= 1000 
     alpha, beta = 0, 0  
     alpha  = math.atan2(x, y)
     beta = math.acos((self.L1**2 + x**2 + y**2 - self.L2**2)/(2*self.L1*math.sqrt(x**2 + y**2)))
@@ -169,10 +171,8 @@ class ForwardWave(abc.ABC):
 
   def init_plot(self, ax, leg):
     ax.set_title(leg)
-    # ax.set_xlim([330, -330])
-    # ax.set_ylim([-330, 330])
-    ax.set_xlim([1, -1])
-    ax.set_ylim([-1, 1])
+    ax.set_xlim([330, -330])
+    ax.set_ylim([-330, 330])
     ax.set_xlabel("x")
     ax.set_ylabel("y")
 
@@ -203,7 +203,7 @@ class ForwardWave(abc.ABC):
     pos = self.pos_for_phase(t)
 
     for leg, (x, y) in pos.items():
-      j1, j2 = self.ikin(x, y - self.quad_height, 'F' in leg)
+      j1, j2 = self.ikin(x, y - self.quad_height / 1000, 'F' in leg)
       self.draw_leg(j1, j2, self.lines[leg])
       
     return [l for line in self.lines.values() for l in line]
@@ -365,12 +365,13 @@ if __name__ == '__main__':
                 interpolation_wait: float = 0.005):
       super().__init__(interpolation_steps, interpolation_wait,
                        transfer_phase=[
-                          (0.0, (-0.015, 0.0)),
-                          (0.05, (-0.0165, 0.0075)),
-                          (0.1, (-0.010499999999999999, 0.015)),
-                          (0.15, (0.0029999999999999966, 0.015)),
-                          (0.2, (0.009, 0.007499999999999997)),
-                          (0.25, (0.0075, -8.673617379884035e-19))])
+                         (0.0, (-0.05, 0.0)),
+                         (0.05, (-0.05500000000000001, 0.0075)),
+                         (0.1, (-0.034999999999999996, 0.015)),
+                         (0.15, (0.010000000000000009, 0.015)),
+                         (0.2, (0.03000000000000002, 0.007499999999999997)),
+                         (0.25, (0.025000000000000022, -8.673617379884035e-19))
+                       ])
 
       self.config = solo8v2vanilla_realtime.RealtimeSolo8VanillaConfig()
       self.config.urdf_path = 'assets/solo8_URDF_v4/solo8_URDF_v4.urdf'
@@ -405,6 +406,6 @@ if __name__ == '__main__':
   sim = FowardWaveSim()
   # sim.run()
   # sim.visualize_foot_pos()
-  # sim.draw_leg(30, 30)
+  # hsim.draw_leg(-50, -330)
   sim.visualize_leg_movements()
   sim.close()
