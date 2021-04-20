@@ -1,7 +1,10 @@
 from typing import List, Tuple
 
+from matplotlib import pyplot as plt
+
 import numpy as np
 import abc
+import collections
 import time
 import json
 import socket
@@ -99,7 +102,7 @@ class ForwardWave(abc.ABC):
 
   def pos_for_phase(self, phi):
     positions = {}
-    phase = list(self.transfer_phase.items())
+    phase = list(self.transfer_phase)
     
     for leg, (start, end) in self.transfer_intervals.items():
       if self._in_transfer_interval(leg, phi):
@@ -129,7 +132,22 @@ class ForwardWave(abc.ABC):
         positions[leg] = (-self.L / 2 + (self.T - distance_to_start) * self.L, 0)
         
     return positions
-        
+
+  def visualize_foot_pos(self):
+    space = np.linspace(0, .25)
+    pos = collections.defaultdict(list)
+
+    for phi in space:
+      positions = self.pos_for_phase(phi)
+
+      for leg in self.leg_ordering:
+        pos[leg].append(positions[leg])
+
+    fig, axes = plt.subplots(1, 4)
+    for i, leg in enumerate(self.leg_ordering):
+      axes[i].plot([x for x,y in pos[leg]], [y for x,y in pos[leg]])
+
+    plt.show()
       
   def FLHR_HFE(self, value):
     self.joints['FL_HFE'] = value
@@ -250,7 +268,14 @@ if __name__ == '__main__':
     
     def __init__(self, interpolation_steps: int = 5, 
                 interpolation_wait: float = 0.005):
-      super().__init__(interpolation_steps, interpolation_wait)
+      super().__init__(interpolation_steps, interpolation_wait,
+                       transfer_phase=[
+                          (0.0, (-0.015, 0.0)),
+                          (0.05, (-0.0165, 0.0075)),
+                          (0.1, (-0.010499999999999999, 0.015)),
+                          (0.15, (0.0029999999999999966, 0.015)),
+                          (0.2, (0.009, 0.007499999999999997)),
+                          (0.25, (0.0075, -8.673617379884035e-19))])
 
       self.config = solo8v2vanilla_realtime.RealtimeSolo8VanillaConfig()
       self.config.urdf_path = 'assets/solo8_URDF_v4/solo8_URDF_v4.urdf'
@@ -270,7 +295,7 @@ if __name__ == '__main__':
         'HR_KFE': 0,
         'HR_ANKLE': 0,
       }
-      self.env = gym.make('solo8vanilla-realtime-v0', config=self.config)
+      # self.env = gym.make('solo8vanilla-realtime-v0', config=self.config)
 
     def _send_angles(self):
       rads = {joint: pos * np.pi / 180 for joint, pos in self.joints.items()}
@@ -283,8 +308,6 @@ if __name__ == '__main__':
 
 
   sim = FowardWaveSim()
-  sim.run()
-  input()
-  import json
-  print(json.dumps(sim.joints))
+  # sim.run()
+  sim.visualize_foot_pos()
   sim.close()
