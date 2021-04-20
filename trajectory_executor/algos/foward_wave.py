@@ -21,7 +21,7 @@ class ForwardWave(abc.ABC):
 
   def __init__(self, interpolation_steps: int = 5, 
                interpolation_wait: float = 0.005,
-               use_socket: bool = True,
+               use_socket: bool = False,
                transfer_phase: List[Tuple[float, Tuple[float, float]]] = None,
                T: float = 1, L: float = 0.03):
     # JOINTS ARE IN DEGREES
@@ -49,13 +49,14 @@ class ForwardWave(abc.ABC):
     # self.L2 = .2
     # self.quad_height = .175
 
-    if use_socket:
+    self.use_socket = use_socket
+    if self.use_socket:
       try:
         self.socket = socket.socket()
         self.socket.connect(SOCKET_ADDR)
       except Exception as e:
         print('Error connecting to socket: {}'.format(e))
-        use_socket = False
+        self.use_socket = False
     
     self._inter_steps = interpolation_steps
     self._inter_wait = interpolation_wait
@@ -87,7 +88,7 @@ class ForwardWave(abc.ABC):
         self.joints[j] = int(v + (goal[j] - v) / int(self._inter_steps) * (i + 1))
 
       self._send_angles()
-      if self.socket:
+      if self.use_socket:
         self._send_via_socket()
       time.sleep(self._inter_wait)
     self._prev_joints = goal
@@ -426,7 +427,6 @@ if __name__ == '__main__':
 
 
   sim = FowardWaveSim()
-  input()
   sim.wave()
   # sim.visualize_foot_pos()
   # sim.draw_leg(-50, -330)
