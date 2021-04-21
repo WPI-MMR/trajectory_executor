@@ -1,7 +1,7 @@
 from typing import List, Tuple
 
-# from matplotlib import pyplot as plt
-# import matplotlib.animation as animation
+from matplotlib import pyplot as plt
+import matplotlib.animation as animation
 
 import pandas as pd
 import numpy as np
@@ -23,7 +23,7 @@ class ForwardWave(abc.ABC):
                interpolation_wait: float = 0.005,
                use_socket: bool = False,
                transfer_phase: List[Tuple[float, Tuple[float, float]]] = None,
-               T: float = .5, L: float = 0.1):
+               T: float = .75, L: float = 0.24):
     # JOINTS ARE IN DEGREES
     self.joints = {
       'FL_HFE': 0,
@@ -322,9 +322,6 @@ class ForwardWave(abc.ABC):
           self.joints[f'{leg}_KFE'] = j2
         
         self.send_angles()
-        if i == 0:
-          input('ready to walk damn')
-
         i += 1
         time.sleep(interval)
 
@@ -427,12 +424,12 @@ if __name__ == '__main__':
                 interpolation_wait: float = 0.005):
       super().__init__(interpolation_steps, interpolation_wait,
                        transfer_phase=[
-                         (0.0, (-0.05, 0.0)),
-                         (0.025, (-0.05500000000000001, 0.0075)),
-                         (0.05, (-0.034999999999999996, 0.015)),
-                         (0.075, (0.010000000000000009, 0.015)),
-                         (0.1, (0.03000000000000002, 0.007499999999999997)),
-                         (0.125, (0.025000000000000022, -8.673617379884035e-19))
+                         (0.0, (-0.12, 0.0)),
+                         (0.037500000000000006, (-0.132, 0.0175)),
+                         (0.07500000000000001, (-0.08399999999999998, 0.035)),
+                         (0.11249999999999999, (0.02399999999999998, 0.035)),
+                         (0.15, (0.072, 0.0175)),
+                         (0.1875, (0.06, 0.0))
                        ])
 
       self.config = solo8v2vanilla_realtime.RealtimeSolo8VanillaConfig()
