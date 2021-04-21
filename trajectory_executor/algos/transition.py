@@ -72,3 +72,4 @@ if __name__ == '__main__':
   gait = TransitionSim('./transition_points.csv')
   input()
   gait.transition()
+  input()
