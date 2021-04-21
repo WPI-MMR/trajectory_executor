@@ -83,14 +83,14 @@ def wave(args=None):
   }
   interval = 0.01
 
-  checkpoints = pd.read_csv(Path(__file__).resolve().parent / 'joints.csv')
+  checkpoints = pd.read_csv('~/joints.csv')
   try:
     while True:
       for _, row in checkpoints.iterrows():
         for k, v in row.items():
           gait.joints[k] = v
-        print(gait.joints)
-        # gait._send_angles()
+        # print(gait.joints)
+        gait._send_angles()
         time.sleep(interval)
   except KeyboardInterrupt:
     pass

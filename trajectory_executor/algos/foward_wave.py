@@ -1,7 +1,7 @@
 from typing import List, Tuple
 
-from matplotlib import pyplot as plt
-import matplotlib.animation as animation
+# from matplotlib import pyplot as plt
+# import matplotlib.animation as animation
 
 import pandas as pd
 import numpy as np
