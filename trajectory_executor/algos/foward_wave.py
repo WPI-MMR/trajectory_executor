@@ -75,7 +75,8 @@ class ForwardWave(abc.ABC):
 
   def _send_via_socket(self):
     try:
-      self.socket.send(json.dumps(self.joints).encode())
+      packet = {k: round(v, 3) for k, v in self.joints.items()}
+      self.socket.sendall(json.dumps(packet).encode())
     except Exception as e:
       print('Problem sending {} to {}'.format(self.joints, SOCKET_ADDR))
       print(e)

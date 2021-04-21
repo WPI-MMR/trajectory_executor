@@ -31,7 +31,7 @@ class FowardWaveNode(Node, ForwardWave):
                            (0.075, (0.010000000000000009, 0.015)),
                            (0.1, (0.03000000000000002, 0.007499999999999997)),
                            (0.125, (0.025000000000000022, -8.673617379884035e-19)),
-                         ])
+                         ], use_socket=True)
 
     # Create publisher
     self.joint_publisher = self.create_publisher(
@@ -85,15 +85,24 @@ def wave(args=None):
 
   checkpoints = pd.read_csv('~/joints.csv')
   try:
+    gait.reset()
+    time.sleep(0.5)
+    i = 0
     while True:
-      for _, row in checkpoints.iterrows():
+      for index, row in checkpoints.iterrows():
         for k, v in row.items():
           gait.joints[k] = v
-        # print(gait.joints)
+        #print(gait.joints)
+        # gait._send_via_socket()
         gait._send_angles()
         time.sleep(interval)
-  except KeyboardInterrupt:
-    pass
+
+        if i == 0:
+          input('ready to walk')
+
+        i += 1
+  except:
+    raise
 
   gait.close()
 
@@ -106,6 +115,7 @@ def interactive(args=None):
       '[h] Home',
       '[j] Single Joint Control',
       '[a] Adjust Interpolation',
+      '[q] Quadrupedal Home',
       '[x] Exit'
     )
     menu = TerminalMenu(options, title='Robot Interactive Control Menu')
@@ -146,6 +156,23 @@ def interactive(args=None):
 
       gait._inter_steps = int(input('New Interpolation Steps: '))
       gait._inter_wait = float(input('New Interpolation Wait Time: '))
+
+    elif choice_idx == 3:
+      gait.joints = {
+        'FL_HFE': 35,
+        'FL_KFE': -80,
+        'FL_ANKLE': 0,
+        'FR_HFE': 35,
+        'FR_KFE': -80,
+        'FR_ANKLE': 0,
+        'HL_HFE': -35,
+        'HL_KFE': 80,
+        'HL_ANKLE': 0,
+        'HR_HFE': -35,
+        'HR_KFE': 80,
+        'HR_ANKLE': 0,
+      }
+      gait.send_angles()
 
     elif choice_idx == len(options) - 1:
       break
