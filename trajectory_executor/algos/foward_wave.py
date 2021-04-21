@@ -682,7 +682,7 @@ if __name__ == '__main__':
 
   """
   # sim.wave()
-  sim.generate_checkpoints(0.01)
+  sim.generate_checkpoints(0.0075)
   # sim.visualize_leg_movements()
   # fig, axes = plt.subplots()
   # line = sim.init_plot(axes, 'Leg')
