@@ -1,9 +1,9 @@
 from typing import List, Tuple
 
-# from matplotlib import pyplot as plt
-# import matplotlib.animation as animation
+from matplotlib import pyplot as plt
+import matplotlib.animation as animation
 
-
+import pandas as pd
 import numpy as np
 import abc
 import collections
@@ -329,6 +329,31 @@ class ForwardWave(abc.ABC):
 
     except KeyboardInterrupt as e:
       pass
+
+  def generate_checkpoints(self, freq):
+    cum_joints = []
+
+    checkpoints = np.arange(0, self.T, freq)    
+    for t in checkpoints:
+      print(t)
+      pos = self.pos_for_phase(t)
+
+      joints = {}
+      for leg, (x, y) in pos.items():
+        j1, j2 = np.degrees(self.ikin(y * 1000 - self.quad_height, x * 1000, 'F' in leg))
+
+        j1 *= -1
+        j2 *= -1
+
+        j1 = j1 if abs(j1) <= 180 else (360 - abs(j1)) * -1 * np.sign(j1)
+        j2 = j2 if abs(j2) <= 180 else (360 - abs(j2)) * -1 * np.sign(j2)
+
+        joints[f'{leg}_HFE'] = j1
+        joints[f'{leg}_KFE'] = j2
+      cum_joints.append(joints)
+
+    df = pd.DataFrame(cum_joints)
+    df.to_csv('joints.csv', index=False)
 
   def run(self):
     self.reset()
@@ -656,7 +681,8 @@ if __name__ == '__main__':
   input()
 
   """
-  sim.wave()
+  # sim.wave()
+  sim.generate_checkpoints(0.01)
   # sim.visualize_leg_movements()
   # fig, axes = plt.subplots()
   # line = sim.init_plot(axes, 'Leg')

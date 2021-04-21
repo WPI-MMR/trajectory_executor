@@ -6,6 +6,9 @@ from trajectory_interfaces.srv import SensorDataRequest
 from trajectory_executor.algos.foward_wave import ForwardWave
 
 from simple_term_menu import TerminalMenu
+from pathlib import Path
+import pandas as pd
+import time
 
 
 def _set_angle_FOR(angle):
@@ -64,7 +67,34 @@ class FowardWaveNode(Node, ForwardWave):
 
 def wave(args=None):
   gait = FowardWaveNode(args, interpolation_steps=5, interpolation_wait=0.005)
-  gait.wave()
+  gait.joints = {
+    'FL_HFE': 0,
+    'FL_KFE': 0,
+    'FL_ANKLE': 0,
+    'FR_HFE': 0,
+    'FR_KFE': 0,
+    'FR_ANKLE': 0, 
+    'HL_HFE': 0,
+    'HL_KFE': 0,
+    'HL_ANKLE': 0,
+    'HR_HFE': 0,
+    'HR_KFE': 0,
+    'HR_ANKLE': 0,
+  }
+  interval = 0.01
+
+  checkpoints = pd.read_csv(Path(__file__).resolve().parent / 'joints.csv')
+  try:
+    while True:
+      for _, row in checkpoints.iterrows():
+        for k, v in row.items():
+          gait.joints[k] = v
+        print(gait.joints)
+        # gait._send_angles()
+        time.sleep(interval)
+  except KeyboardInterrupt:
+    pass
+
   gait.close()
 
 
