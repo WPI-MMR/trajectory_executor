@@ -81,7 +81,7 @@ def wave(args=None):
     'HR_KFE': 0,
     'HR_ANKLE': 0,
   }
-  interval = 0.01
+  interval = 0.0075
 
   checkpoints = pd.read_csv('~/joints.csv')
   try:
