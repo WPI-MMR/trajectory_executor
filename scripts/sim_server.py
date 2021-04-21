@@ -14,7 +14,7 @@ import json
 
 
 PORT = 42069
-SIZE = 1024
+SIZE = 131072
 
 
 def env_socket(env, socket):
@@ -40,13 +40,19 @@ def env_socket(env, socket):
     print(f'Connection from {client_addr}')
     while connection:
       try:
-        data = json.loads(connection.recv(SIZE).decode())
-        rads = {joint: pos * np.pi / 180 for joint, pos in data.items()} 
-        action = [rads[j] * axis[j] for j in env.joint_ordering]
-        print(action)
-        env.step(action)
+        string = connection.recv(SIZE).decode('utf-8') 
+
+        try:
+          data = json.loads(string)
+          rads = {joint: pos * np.pi / 180 for joint, pos in data.items()} 
+          action = [rads[j] * axis[j] for j in env.joint_ordering]
+          print(action)
+          env.step(action)
+        except Exception as e:
+          print(string)
+          print(e)
       except:
-        break
+        raise
   
 
 config = solo8v2vanilla_realtime.RealtimeSolo8VanillaConfig()
