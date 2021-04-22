@@ -53,8 +53,8 @@ class TransitionSim(abc.ABC):
         'HR_HFE': -row['hip'],
         'HL_KFE': -row['knee'],
         'HR_KFE': -row['knee'],
-        'HL_ANKLE': np.pi / 2 - row['ankle'], 
-        'HR_ANKLE': np.pi / 2 - row['ankle'],
+        'HL_ANKLE': 1.182 - row['ankle'], 
+        'HR_ANKLE': 1.182 - row['ankle'],
       }
       self.send_angles(joint_packet)
       time.sleep(row['t'])
