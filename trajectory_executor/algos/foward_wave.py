@@ -424,13 +424,13 @@ if __name__ == '__main__':
                 interpolation_wait: float = 0.005):
       super().__init__(interpolation_steps, interpolation_wait,
                        transfer_phase=[
-                         (0.0, (-0.1, 0.0)),
-                         (0.05, (-0.11000000000000001, 0.0175)),
-                         (0.1, (-0.06999999999999999, 0.035)),
-                         (0.15, (0.020000000000000018, 0.035)),
-                         (0.2, (0.06000000000000004, 0.017499999999999995)),
-                         (0.25, (0.050000000000000044, -3.469446951953614e-18))
-                       ], T = 1, L = 0.2)
+                         (0.0, (-0.05, 0.0)),
+                         (0.05, (-0.05500000000000001, 0.0175)),
+                         (0.1, (-0.034999999999999996, 0.035)),
+                         (0.15, (0.010000000000000009, 0.035)),
+                         (0.2, (0.03000000000000002, 0.017499999999999995)),
+                         (0.25, (0.025000000000000022, -3.469446951953614e-18))
+                       ], T = 1, L = 0.1)
 
       self.config = solo8v2vanilla_realtime.RealtimeSolo8VanillaConfig()
       self.config.urdf_path = 'assets/solo8_URDF_v4/solo8_URDF_v4.urdf'
@@ -679,7 +679,7 @@ if __name__ == '__main__':
   input()
 
   """
-  #sim.wave()
+  # sim.wave()
   sim.generate_checkpoints(0.0075)
   # sim.visualize_leg_movements()
   # fig, axes = plt.subplots()
