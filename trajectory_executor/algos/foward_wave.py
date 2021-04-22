@@ -23,7 +23,7 @@ class ForwardWave(abc.ABC):
                interpolation_wait: float = 0.005,
                use_socket: bool = False,
                transfer_phase: List[Tuple[float, Tuple[float, float]]] = None,
-               T: float = .75, L: float = 0.24):
+               T: float = .75, L: float = 0.24, buck_height = 20):
     # JOINTS ARE IN DEGREES
     self.joints = {
       'FL_HFE': 0,
@@ -43,7 +43,8 @@ class ForwardWave(abc.ABC):
 
     self.L1 = 160
     self.L2 = 170
-    self.quad_height = 290
+    self.quad_height = 275
+    self.buck_height = buck_height
 
     # self.L1 = .2
     # self.L2 = .2
@@ -309,7 +310,7 @@ class ForwardWave(abc.ABC):
 
         for leg, (x, y) in pos.items():
           if 'H' in leg:
-            y -= 20 / 1000
+            y -= self.buck_height / 1000
           # j1, j2 = np.degrees(self.ikin(x, y - self.quad_height / 1000, 'H' in leg))
           j1, j2 = np.degrees(self.ikin(y * 1000 - self.quad_height, x * 1000, 'F' in leg))
           # if 'H' in leg:
@@ -431,7 +432,7 @@ if __name__ == '__main__':
  (0.029999999999999992, (0.019, 0.03)),
  (0.039999999999999994, (0.042000000000000016, 0.014999999999999994)),
  (0.04999999999999999, (0.04000000000000002, 0.0))
-                       ], T = .5, L = 0.1)
+                       ], T = .5, L = 0.1, buck_height=40)
 
       self.config = solo8v2vanilla_realtime.RealtimeSolo8VanillaConfig()
       self.config.urdf_path = 'assets/solo8_URDF_v4/solo8_URDF_v4.urdf'
@@ -680,8 +681,8 @@ if __name__ == '__main__':
   input()
 
   """
-  #sim.wave()
-  sim.generate_checkpoints(0.0075)
+  sim.wave()
+  # sim.generate_checkpoints(0.0075)
   # sim.visualize_leg_movements()
   # fig, axes = plt.subplots()
   # line = sim.init_plot(axes, 'Leg')
