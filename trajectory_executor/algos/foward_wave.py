@@ -43,7 +43,7 @@ class ForwardWave(abc.ABC):
 
     self.L1 = 160
     self.L2 = 170
-    self.quad_height = 275
+    self.quad_height = 260
     self.buck_height = buck_height
 
     # self.L1 = .2
@@ -432,7 +432,7 @@ if __name__ == '__main__':
  (0.029999999999999992, (0.019, 0.03)),
  (0.039999999999999994, (0.042000000000000016, 0.014999999999999994)),
  (0.04999999999999999, (0.04000000000000002, 0.0))
-                       ], T = .5, L = 0.1, buck_height=40)
+                       ], T = .5, L = 0.1, buck_height=50)
 
       self.config = solo8v2vanilla_realtime.RealtimeSolo8VanillaConfig()
       self.config.urdf_path = 'assets/solo8_URDF_v4/solo8_URDF_v4.urdf'
@@ -681,8 +681,8 @@ if __name__ == '__main__':
   input()
 
   """
-  sim.wave()
-  # sim.generate_checkpoints(0.0075)
+  # sim.wave()
+  sim.generate_checkpoints(0.0075)
   # sim.visualize_leg_movements()
   # fig, axes = plt.subplots()
   # line = sim.init_plot(axes, 'Leg')
