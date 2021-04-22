@@ -43,7 +43,7 @@ class ForwardWave(abc.ABC):
 
     self.L1 = 160
     self.L2 = 170
-    self.quad_height = 233
+    self.quad_height = 290
 
     # self.L1 = .2
     # self.L2 = .2
@@ -308,6 +308,8 @@ class ForwardWave(abc.ABC):
         pos = self.pos_for_phase(t)
 
         for leg, (x, y) in pos.items():
+          if 'H' in leg:
+            y -= 20 / 1000
           # j1, j2 = np.degrees(self.ikin(x, y - self.quad_height / 1000, 'H' in leg))
           j1, j2 = np.degrees(self.ikin(y * 1000 - self.quad_height, x * 1000, 'F' in leg))
           # if 'H' in leg:
@@ -333,7 +335,6 @@ class ForwardWave(abc.ABC):
 
     checkpoints = np.arange(0, self.T, freq)    
     for t in checkpoints:
-      print(t)
       pos = self.pos_for_phase(t)
 
       joints = {}
@@ -424,13 +425,13 @@ if __name__ == '__main__':
                 interpolation_wait: float = 0.005):
       super().__init__(interpolation_steps, interpolation_wait,
                        transfer_phase=[
-                         (0.0, (-0.09375, 0.0)),
-                         (0.037500000000000006, (-0.103125, 0.035)),
-                         (0.07500000000000001, (-0.06562499999999999, 0.07)),
-                         (0.11249999999999999, (0.018749999999999975, 0.07)),
-                         (0.15, (0.05624999999999999, 0.035)),
-                         (0.1875, (0.046874999999999986, 0.0))
-                       ], T = .75, L = 0.1875)
+(0.0, (-0.05, 0.0)),
+ (0.009999999999999998, (-0.052000000000000005, 0.015)),
+ (0.019999999999999997, (-0.028999999999999998, 0.03)),
+ (0.029999999999999992, (0.019, 0.03)),
+ (0.039999999999999994, (0.042000000000000016, 0.014999999999999994)),
+ (0.04999999999999999, (0.04000000000000002, 0.0))
+                       ], T = .5, L = 0.1)
 
       self.config = solo8v2vanilla_realtime.RealtimeSolo8VanillaConfig()
       self.config.urdf_path = 'assets/solo8_URDF_v4/solo8_URDF_v4.urdf'
@@ -679,7 +680,7 @@ if __name__ == '__main__':
   input()
 
   """
-  # sim.wave()
+  #sim.wave()
   sim.generate_checkpoints(0.0075)
   # sim.visualize_leg_movements()
   # fig, axes = plt.subplots()
