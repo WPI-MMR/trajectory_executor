@@ -352,6 +352,16 @@ class ForwardWave(abc.ABC):
 
       joints = {}
       for leg, (x, y) in pos.items():
+        if 'H' in leg:
+          y -= self.buck_height / 1000
+
+        vec_err = y * math.tan(self.alpha)
+        x_err = vec_err * math.cos(self.alpha)
+        y_err = vec_err * math.sin(self.alpha)
+
+        x += x_err
+        y -= y_err
+
         j1, j2 = np.degrees(self.ikin(y * 1000 - self.quad_height, x * 1000, 'F' in leg))
 
         j1 *= -1
@@ -438,13 +448,13 @@ if __name__ == '__main__':
                 interpolation_wait: float = 0.005):
       super().__init__(interpolation_steps, interpolation_wait,
                        transfer_phase=[
-(0.0, (-0.075, 0.0)),
- (0.014999999999999998, (-0.078, 0.025)),
- (0.029999999999999995, (-0.04349999999999998, 0.05)),
- (0.044999999999999984, (0.028500000000000004, 0.05)),
- (0.059999999999999984, (0.06300000000000001, 0.024999999999999998)),
- (0.07499999999999998, (0.06000000000000001, -6.938893903907228e-18))
-                       ], T = .75, L = 0.15, buck_height=45)
+                         (0.0, (-0.075, 0.0)),
+ (0.019999999999999997, (-0.078, 0.025)),
+ (0.039999999999999994, (-0.04349999999999999, 0.05)),
+ (0.059999999999999984, (0.028499999999999994, 0.05)),
+ (0.07999999999999999, (0.06300000000000001, 0.024999999999999994)),
+ (0.09999999999999998, (0.06000000000000001, 3.469446951953614e-18))
+                       ], T = .75, L = 0.15, buck_height=40)
 
       self.config = solo8v2vanilla_realtime.RealtimeSolo8VanillaConfig()
       self.config.urdf_path = 'assets/solo8_URDF_v4/solo8_URDF_v4.urdf'
@@ -693,7 +703,7 @@ if __name__ == '__main__':
   input()
 
   """
-  # sim.wave()
+  #sim.wave()
   sim.generate_checkpoints(0.0075)
   # sim.visualize_leg_movements()
   # fig, axes = plt.subplots()
