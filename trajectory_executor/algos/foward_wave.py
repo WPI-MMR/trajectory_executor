@@ -454,7 +454,7 @@ if __name__ == '__main__':
  (0.059999999999999984, (0.028499999999999994, 0.05)),
  (0.07999999999999999, (0.06300000000000001, 0.024999999999999994)),
  (0.09999999999999998, (0.06000000000000001, 3.469446951953614e-18))
-                       ], T = .75, L = 0.15, buck_height=40)
+                       ], T = .75, L = 0.15, buck_height=20)
 
       self.config = solo8v2vanilla_realtime.RealtimeSolo8VanillaConfig()
       self.config.urdf_path = 'assets/solo8_URDF_v4/solo8_URDF_v4.urdf'
@@ -703,7 +703,7 @@ if __name__ == '__main__':
   input()
 
   """
-  #sim.wave()
+  # sim.wave()
   sim.generate_checkpoints(0.0075)
   # sim.visualize_leg_movements()
   # fig, axes = plt.subplots()
