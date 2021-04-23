@@ -18,6 +18,7 @@ SOCKET_ADDR = ('192.168.1.82', 42069)
 
 class ForwardWave(abc.ABC):
   leg_ordering = ('HL', 'FL', 'HR', 'FR')
+  body_width = 380
 
   def __init__(self, interpolation_steps: int = 5, 
                interpolation_wait: float = 0.005,
@@ -43,8 +44,11 @@ class ForwardWave(abc.ABC):
 
     self.L1 = 160
     self.L2 = 170
-    self.quad_height = 260
+    self.quad_height = 250
     self.buck_height = buck_height
+
+    self.alpha = math.asin(self.buck_height / self.body_width)
+    print(f'alpha: {self.alpha}')
 
     # self.L1 = .2
     # self.L2 = .2
@@ -311,6 +315,14 @@ class ForwardWave(abc.ABC):
         for leg, (x, y) in pos.items():
           if 'H' in leg:
             y -= self.buck_height / 1000
+
+          vec_err = y * math.tan(self.alpha)
+          x_err = vec_err * math.cos(self.alpha)
+          y_err = vec_err * math.sin(self.alpha)
+
+          x += x_err
+          y -= y_err
+
           # j1, j2 = np.degrees(self.ikin(x, y - self.quad_height / 1000, 'H' in leg))
           j1, j2 = np.degrees(self.ikin(y * 1000 - self.quad_height, x * 1000, 'F' in leg))
           # if 'H' in leg:
@@ -432,7 +444,7 @@ if __name__ == '__main__':
  (0.029999999999999992, (0.019, 0.03)),
  (0.039999999999999994, (0.042000000000000016, 0.014999999999999994)),
  (0.04999999999999999, (0.04000000000000002, 0.0))
-                       ], T = .5, L = 0.1, buck_height=50)
+                       ], T = .5, L = 0.1, buck_height=30)
 
       self.config = solo8v2vanilla_realtime.RealtimeSolo8VanillaConfig()
       self.config.urdf_path = 'assets/solo8_URDF_v4/solo8_URDF_v4.urdf'
