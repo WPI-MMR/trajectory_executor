@@ -1,3 +1,4 @@
+from os import sched_rr_get_interval
 import pandas as pd
 import numpy as np
 import abc
@@ -57,6 +58,7 @@ class TransitionSim(abc.ABC):
         'HR_ANKLE': 1.182 - row['ankle'],
       }
       self.send_angles(joint_packet)
+      self.drop_altitude(row['t'])
       time.sleep(row['t'])
 
   def send_angles(self, packet):
@@ -64,12 +66,46 @@ class TransitionSim(abc.ABC):
               for j in self.env.joint_ordering]
     self.env.step(action)
 
+  def drop_altitude(self, interval):
+    base_pos, base_orien = self.env.client.getBasePositionAndOrientation(self.env.robot)
+    com_pos = self.env.client.getDynamicsInfo(self.env.robot, -1)[3]
+    com_orien = self.env.client.getDynamicsInfo(self.env.robot, -1)[4]
+
+    global_pos, _ = self.env.client.multiplyTransforms(base_pos, base_orien, com_pos, com_orien)
+    self.env.client.addUserDebugLine(global_pos, [global_pos[0], global_pos[1], 0], 
+                                     lineColorRGB=[255, 0, 0], 
+                                     lineWidth=5, 
+                                     lifeTime=interval)
+
+  def debug(self, interval: float = 0.1):
+    try:
+      while True:
+        self.compute_com(interval)
+        time.sleep(interval)
+    except KeyboardInterrupt:
+      pass
+  
+  def compute_com(self, interval):
+    base_pos, base_orien = self.env.client.getBasePositionAndOrientation(self.env.robot)
+
+    for link in range(-1, self.env.client.getNumJoints(self.env.robot)):
+      print(link)
+      com_pos = self.env.client.getDynamicsInfo(self.env.robot, link)[3]
+      com_orien = self.env.client.getDynamicsInfo(self.env.robot, link)[4]
+
+      global_pos, _ = self.env.client.multiplyTransforms(base_pos, base_orien, com_pos, com_orien)
+      self.env.client.addUserDebugLine(global_pos, [global_pos[0], global_pos[1], 0], 
+                                        lineColorRGB=[255, 0, 0], 
+                                        lineWidth=5, )
+                                        # lifeTime=interval)
+
+
 if __name__ == '__main__':
   import gym
   import gym_solo
   from gym_solo.envs import solo8v2vanilla_realtime
 
   gait = TransitionSim('./transition_points.csv')
-  input()
-  gait.transition()
+  gait.debug()
+  # gait.transition()
   input()

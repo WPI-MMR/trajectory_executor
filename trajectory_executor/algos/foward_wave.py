@@ -704,8 +704,8 @@ if __name__ == '__main__':
 
   """
   # sim.wave()
-  sim.generate_checkpoints(0.0075)
-  # sim.visualize_leg_movements()
+  # sim.generate_checkpoints(0.0075)
+  sim.visualize_foot_pos()
   # fig, axes = plt.subplots()
   # line = sim.init_plot(axes, 'Leg')
   # sim.draw_leg(np.pi / 4, -np.pi/3, line)
