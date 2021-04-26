@@ -118,17 +118,18 @@ if __name__ == '__main__':
   gait = TransitionSim('./transition_points.csv', front_mult=mult, back_mult=mult)
   while True:
   # gait.debug()
-    gait.transition()
-    (x, y, z), _ = gait.env.client.getBasePositionAndOrientation(gait.env.robot)
+    print()
+    print(f'Imbalance: {mult}')
 
-    if x < 0:
+    gait.transition()
+    time.sleep(.1)
+    (x, y, z), _ = gait.env.client.getBasePositionAndOrientation(gait.env.robot)
+    print(x, y, z)
+
+    if x > 0:
       mult = (bounds[1] + mult) / 2
     else:
       mult = (bounds[0] + mult) / 2
-
-    print()
-    print(f'Imbalance: {mult}')
-    print()
 
     gait.front_mult = mult
     gait.back_mult = mult
