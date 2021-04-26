@@ -1,4 +1,3 @@
-from os import sched_rr_get_interval
 import pandas as pd
 import numpy as np
 import abc
@@ -21,7 +20,7 @@ class TransitionSim(abc.ABC):
     'HR_ANKLE': -1,
   }
 
-  def __init__(self, filename):
+  def __init__(self, filename, front_mult=1.2, back_mult=1.2):
     self.trajectory = pd.read_csv(
       filename, names=['ankle', 'knee', 'hip', 'shoulder', 'elbow', 't'])
     
@@ -42,6 +41,20 @@ class TransitionSim(abc.ABC):
       'HR_ANKLE': 0,
     }
     self.env = gym.make('solo8vanilla-realtime-v0', config=self.config)
+    self.env.obs_factory.register_observation(CompliantObs(self.env.robot))
+
+    self.front_mult = front_mult
+    self.back_mult = back_mult
+    self.update_mass()
+
+  def update_mass(self):
+    for leg, i in [('FL_HFE', 6),('FL_KFE', 7),('FR_HFE', 8),('FR_KFE', 9)]:
+      current_mass = self.env.client.getDynamicsInfo(self.env.robot, i)[0]
+
+      if 'F' in leg:
+        self.env.client.changeDynamics(self.env.robot, i, mass=current_mass * self.front_mult)
+      else:
+        self.env.client.changeDynamics(self.env.robot, i, mass=current_mass * self.back_mult)
 
   def transition(self):
     for _, row in self.trajectory.iterrows():
@@ -77,35 +90,47 @@ class TransitionSim(abc.ABC):
                                      lineWidth=5, 
                                      lifeTime=interval)
 
-  def debug(self, interval: float = 0.1):
-    try:
-      while True:
-        self.compute_com(interval)
-        time.sleep(interval)
-    except KeyboardInterrupt:
-      pass
+  def debug(self):
+    pass
+      
   
   def compute_com(self, interval):
     base_pos, base_orien = self.env.client.getBasePositionAndOrientation(self.env.robot)
 
-    for link in range(-1, self.env.client.getNumJoints(self.env.robot)):
-      print(link)
-      com_pos = self.env.client.getDynamicsInfo(self.env.robot, link)[3]
-      com_orien = self.env.client.getDynamicsInfo(self.env.robot, link)[4]
+    com_pos = self.env.client.getDynamicsInfo(self.env.robot, -1)[3]
+    com_orien = self.env.client.getDynamicsInfo(self.env.robot, -1)[4]
 
-      global_pos, _ = self.env.client.multiplyTransforms(base_pos, base_orien, com_pos, com_orien)
-      self.env.client.addUserDebugLine(global_pos, [global_pos[0], global_pos[1], 0], 
-                                        lineColorRGB=[255, 0, 0], 
-                                        lineWidth=5, )
-                                        # lifeTime=interval)
+    global_pos, _ = self.env.client.multiplyTransforms(base_pos, base_orien, com_pos, com_orien)
+    self.env.client.addUserDebugLine(global_pos, [global_pos[0], global_pos[1], 0], 
+                                      lineColorRGB=[255, 0, 0], 
+                                      lineWidth=5, 
+                                      lifeTime=interval)
 
 
 if __name__ == '__main__':
   import gym
   import gym_solo
   from gym_solo.envs import solo8v2vanilla_realtime
+  from gym_solo.testing import CompliantObs
 
-  gait = TransitionSim('./transition_points.csv')
-  gait.debug()
-  # gait.transition()
-  input()
+  bounds = (1.5, 2)
+  mult = (bounds[0] + bounds[1])/2
+  gait = TransitionSim('./transition_points.csv', front_mult=mult, back_mult=mult)
+  while True:
+  # gait.debug()
+    gait.transition()
+    (x, y, z), _ = gait.env.client.getBasePositionAndOrientation(gait.env.robot)
+
+    if x < 0:
+      mult = (bounds[1] + mult) / 2
+    else:
+      mult = (bounds[0] + mult) / 2
+
+    print()
+    print(f'Imbalance: {mult}')
+    print()
+
+    gait.front_mult = mult
+    gait.back_mult = mult
+    gait.update_mass()
+    gait.env.reset()
