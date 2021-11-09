@@ -2,6 +2,7 @@ import rclpy
 from rclpy.node import Node
 
 from trajectory_interfaces.msg import Trajectory, SensorData
+from trajectory_interfaces.srv import SensorDataRequest
 
 import serial
 
@@ -10,47 +11,86 @@ class TrajectoryTracker(Node):
   """Trajectory tracking for an 8-DOF quadruped robot given a trajectory"""
   def __init__(self):
     super().__init__('trajectory_tracker')
-    self._publisher = self.create_publisher(
+    self.sd_publisher = self.create_publisher(
       SensorData,
       'traj_start_data',
       10)
-    self._subscription = self.create_subscription(
+
+    self.ja_publisher = self.create_publisher(
+      JointAngles,
+      'joint_angles',
+      10)
+
+    self.srv_client = self.create_client(
+      SensorDataRequest,
+      'sensor_data_request')
+
+    self.subscription = self.create_subscription(
       Trajectory,
       'new_traj',
       self.new_traj_callback,
       10)
 
-    timer_period = 2 # seconds
-    self.timer = self.create_timer(timer_period, self.timer_callback)
-    self.ard_check = self.create_timer(0.1, self.ard_check_callback)
+    while not self.srv_client.wait_for_service(timeout_sec=1.0):
+      self.get_logger().info("Serial service inactive, waiting...")
 
-    self.arduino_port = serial.Serial(
-      port="/dev/ttyAMA1",  # TODO: evaluate if we should change to cli flag
-      baudrate=115200
-    )
+    self.req = SensorDataRequest.Request()
+    self.traj = Trajectory()
+    self.traj_queued = False
 
-  def ard_check_callback(self):
-    """Check for serial data from Arduino"""
-    if self.arduino_port.in_waiting:
-      received_data = self.arduino_port.read(1)
-      self.arduino_port.write(received_data)
+    # timer_period = 2 # seconds
+    # self.timer = self.create_timer(timer_period, self.timer_callback)
 
-  def timer_callback(self):
-    """Publish Arduino sensor data to ROS topic '/traj_start_data'"""
-    msg = SensorData()
-    msg.data = 'Arduino Sensor Data'
-    self._publisher.publish(msg)
+  def send_request(self):
+    self.req.requested = True
+    self.future = self.srv_client.call_async(self.req)
+
+
+  # def timer_callback(self):
+  #   """Publish Arduino sensor data to ROS topic '/traj_start_data'"""
+  #   msg = SensorData()
+  #   msg.data = 'Arduino Sensor Data'
+  #   self._publisher.publish(msg)
 
   def new_traj_callback(self, msg: Trajectory):
     """Receive trajectory from generator node"""
-    self.get_logger().info(msg.data)
+    self.get_logger().info("Received trajectory from generator")
+    self.traj = msg
+    self.traj_queued = True
 
 
 def main(args=None):
   rclpy.init(args=args)
   trajectory_tracker = TrajectoryTracker()
 
-  rclpy.spin(trajectory_tracker)
+  trajectory_tracker.get_logger().info("Ready to receive new trajectory")
+  while rclpy.ok():
+    if trajectory_tracker.traj_queued:
+      trajectory_tracker.get_logger().info("Executing...")
+      for ja in trajectory_tracker.traj.traj:
+        goal = False
+        trajectory_tracker.ja_publisher.publish(ja)
+        while rclpy.ok():
+          trajectory_tracker.send_request()
+          while rclpy.ok():
+            rclpy.spin_once(trajectory_tracker)
+            if trajectory_tracker.future.done():
+              try:
+                response = trajectory_tracker.future.result()
+              except Exception as e:
+                trajectory_tracker.get_logger().info(f"Service call failed {e}")
+              else:
+                if response.at_goal:
+                  goal = True
+                break
+
+          if goal:
+            trajectory_tracker.get_logger().info("Goal reached")
+            break
+
+      trajectory_tracker.traj_queued = False # reset to wait for new traj
+
+  # rclpy.spin(trajectory_tracker)
   rclpy.shutdown()
 
 

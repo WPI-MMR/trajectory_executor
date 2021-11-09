@@ -26,7 +26,8 @@ setup(
             'com_socket = trajectory_executor.com_socket:main',
             'serial_test = trajectory_executor.serial_test:main',
             'odrive_test = trajectory_executor.odrive_test:main',
-            'ik_test = trajectory_executor.ik_test:main'
+            'ik_test = trajectory_executor.ik_test:main',
+            'simple_traj_generator = trajectory_executor.simple_traj_generator:main'
         ],
     },
 )
