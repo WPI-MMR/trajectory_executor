@@ -1,7 +1,7 @@
 import rclpy
 from rclpy.node import Node
 
-from trajectory_interfaces.msg import Trajectory, SensorData
+from trajectory_interfaces.msg import Trajectory, SensorData, JointAngles
 from trajectory_interfaces.srv import SensorDataRequest
 
 import serial
@@ -65,6 +65,7 @@ def main(args=None):
 
   trajectory_tracker.get_logger().info("Ready to receive new trajectory")
   while rclpy.ok():
+    rclpy.spin_once(trajectory_tracker)
     if trajectory_tracker.traj_queued:
       trajectory_tracker.get_logger().info("Executing...")
       for ja in trajectory_tracker.traj.traj:
