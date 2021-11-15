@@ -71,6 +71,8 @@ def main(args=None):
       for ja in trajectory_tracker.traj.traj:
         goal = False
         trajectory_tracker.ja_publisher.publish(ja)
+        trajectory_tracker.get_logger().info(f"R_SH: {ja.right_shoulder}")
+        trajectory_tracker.get_logger().info(f"R_EL: {ja.right_elbow}")
         while rclpy.ok():
           trajectory_tracker.send_request()
           while rclpy.ok():
