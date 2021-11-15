@@ -27,7 +27,8 @@ setup(
             'serial_test = trajectory_executor.serial_test:main',
             'odrive_test = trajectory_executor.odrive_test:main',
             'ik_test = trajectory_executor.ik_test:main',
-            'simple_traj_generator = trajectory_executor.simple_traj_generator:main'
+            'simple_traj_generator = trajectory_executor.simple_traj_generator:main',
+            'quad_walk_generator = trajectory_executor.quad_walk_generator:main'
         ],
     },
 )
