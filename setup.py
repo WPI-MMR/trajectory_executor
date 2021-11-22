@@ -28,7 +28,8 @@ setup(
             'odrive_test = trajectory_executor.odrive_test:main',
             'ik_test = trajectory_executor.ik_test:main',
             'simple_traj_generator = trajectory_executor.simple_traj_generator:main',
-            'quad_walk_generator = trajectory_executor.quad_walk_generator:main'
+            'quad_walk_generator = trajectory_executor.quad_walk_generator:main',
+            'move_home = trajectory_executor.move_home:main'
         ],
     },
 )

@@ -89,14 +89,17 @@ def ik_solver(coord):
 
   ja.right_shoulder = int(theta12)
   ja.right_elbow = int(theta22)
-  ja.left_hip = 0
-  ja.left_knee = 0
-  ja.right_hip = 0
-  ja.right_knee = 0
-  ja.left_shoulder = 0
-  ja.left_elbow = 0
+  ja.left_hip = int(invert_ja(theta12))
+  ja.left_knee = int(invert_ja(theta22))
+  ja.right_hip = int(theta12)
+  ja.right_knee = int(theta22)
+  ja.left_shoulder = int(invert_ja(theta12))
+  ja.left_elbow = int(invert_ja(theta22))
 
   return ja
+
+def invert_ja(ja):
+  return 0 - ja + 360
 
 if __name__ == '__main__':
   main()
