@@ -5,6 +5,7 @@ from trajectory_interfaces.msg import Trajectory, SensorData, JointAngles
 from trajectory_interfaces.srv import SensorDataRequest
 
 import serial
+import time
 
 
 class TrajectoryTracker(Node):
@@ -73,6 +74,7 @@ def main(args=None):
         trajectory_tracker.ja_publisher.publish(ja)
         trajectory_tracker.get_logger().info(f"R_SH: {ja.right_shoulder}")
         trajectory_tracker.get_logger().info(f"R_EL: {ja.right_elbow}")
+        time.sleep(0.1)
         while rclpy.ok():
           trajectory_tracker.send_request()
           while rclpy.ok():
