@@ -1,7 +1,7 @@
 import rclpy
 from rclpy.node import Node
 
-from trajectory_interfaces.msg import Trajectory, SensorData, JointAngles
+from trajectory_interfaces.msg import Trajectory, JointAngles
 
 import math
 from trajectory_executor.Parameters import *
@@ -16,15 +16,15 @@ class QuadWalkGenerator(Node):
       Trajectory,
       'new_traj',
       10)
-    self._subscription = self.create_subscription(
-      SensorData,
-      'traj_start_data',
-      self.create_trajectory_callback,
-      10)
+    # self._subscription = self.create_subscription(
+    #   SensorData,
+    #   'traj_start_data',
+    #   self.create_trajectory_callback,
+    #   10)
 
-  def create_trajectory_callback(self, msg: SensorData):
-    """Receive sensor data and publish trajectory to '/new_traj'"""
-    self.get_logger().info('Received: {}'.format(msg.data))
+  # def create_trajectory_callback(self, msg: SensorData):
+  #   """Receive sensor data and publish trajectory to '/new_traj'"""
+  #   self.get_logger().info('Received: {}'.format(msg.data))
 
     # reply = Trajectory()
     # reply.data = 'This will contain new trajectory data'

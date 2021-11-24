@@ -1,14 +1,14 @@
 import rclpy
 from rclpy.node import Node
 
-from trajectory_interfaces.srv import SensorDataRequest
-from trajectory_interfaces.msg import JointAngles
+from trajectory_interfaces.srv import SensorDataRequest, JointAngles
+# from trajectory_interfaces.msg import JointAngles
 
 import serial
 import struct
 import copy
 
-from trajectory_executor.datastructures import serial_read_states, data_packet_struct
+from trajectory_executor.datastructures import serial_read_states, data_packet_struct, ack_packet_struct
 
 
 class SerialConnection(Node):
@@ -19,17 +19,16 @@ class SerialConnection(Node):
     self.preamble_length = 4
     self.data_byte_length = 2
 
-    self._service = self.create_service(
+    self.data_service = self.create_service(
       SensorDataRequest,
       'sensor_data_request',
       self.sensor_data_request_callback
     )
 
-    self._subscriber = self.create_subscription(
+    self.ja_service = self.create_service(
       JointAngles,
       'joint_angles',
       self.send_joint_angles_callback,
-      10
     )
 
     self.arduino_port = serial.Serial(
@@ -191,29 +190,29 @@ class SerialConnection(Node):
 
     return response
 
-  def send_joint_angles_callback(self, msg: JointAngles):
+  def send_joint_angles_callback(self, req: JointAngles, response: JointAngles):
     """Send new joint angles to Arduino for execution"""
     # self.get_logger().info("Sending joint angles")
 
     # Split joint angles into two numbers since max value of a byte is 255
     ja_bytes = []
     ja_bytes.append(0) # data request byte
-    ja_bytes.append(255 if msg.left_hip // 256 > 0 else msg.left_hip)
-    ja_bytes.append(msg.left_hip % 255 if msg.left_hip // 256 > 0 else 0)
-    ja_bytes.append(255 if msg.left_knee // 256 > 0 else msg.left_knee)
-    ja_bytes.append(msg.left_knee % 255 if msg.left_knee // 256 > 0 else 0)
-    ja_bytes.append(255 if msg.right_hip // 256 > 0 else msg.right_hip)
-    ja_bytes.append(msg.right_hip % 255 if msg.right_hip // 256 > 0 else 0)
-    ja_bytes.append(255 if msg.right_knee // 256 > 0 else msg.right_knee)
-    ja_bytes.append(msg.right_knee % 255 if msg.right_knee // 256 > 0 else 0)
-    ja_bytes.append(255 if msg.left_shoulder // 256 > 0 else msg.left_shoulder)
-    ja_bytes.append(msg.left_shoulder % 255 if msg.left_shoulder // 256 > 0 else 0)
-    ja_bytes.append(255 if msg.left_elbow // 256 > 0 else msg.left_elbow)
-    ja_bytes.append(msg.left_elbow % 255 if msg.left_elbow // 256 > 0 else 0)
-    ja_bytes.append(255 if msg.right_shoulder // 256 > 0 else msg.right_shoulder)
-    ja_bytes.append(msg.right_shoulder % 255 if msg.right_shoulder // 256 > 0 else 0)
-    ja_bytes.append(255 if msg.right_elbow // 256 > 0 else msg.right_elbow)
-    ja_bytes.append(msg.right_elbow % 255 if msg.right_elbow // 256 > 0 else 0)
+    ja_bytes.append(255 if req.left_hip // 256 > 0 else req.left_hip)
+    ja_bytes.append(req.left_hip % 255 if req.left_hip // 256 > 0 else 0)
+    ja_bytes.append(255 if req.left_knee // 256 > 0 else req.left_knee)
+    ja_bytes.append(req.left_knee % 255 if req.left_knee // 256 > 0 else 0)
+    ja_bytes.append(255 if req.right_hip // 256 > 0 else req.right_hip)
+    ja_bytes.append(req.right_hip % 255 if req.right_hip // 256 > 0 else 0)
+    ja_bytes.append(255 if req.right_knee // 256 > 0 else req.right_knee)
+    ja_bytes.append(req.right_knee % 255 if req.right_knee // 256 > 0 else 0)
+    ja_bytes.append(255 if req.left_shoulder // 256 > 0 else req.left_shoulder)
+    ja_bytes.append(req.left_shoulder % 255 if req.left_shoulder // 256 > 0 else 0)
+    ja_bytes.append(255 if req.left_elbow // 256 > 0 else req.left_elbow)
+    ja_bytes.append(req.left_elbow % 255 if req.left_elbow // 256 > 0 else 0)
+    ja_bytes.append(255 if req.right_shoulder // 256 > 0 else req.right_shoulder)
+    ja_bytes.append(req.right_shoulder % 255 if req.right_shoulder // 256 > 0 else 0)
+    ja_bytes.append(255 if req.right_elbow // 256 > 0 else req.right_elbow)
+    ja_bytes.append(req.right_elbow % 255 if req.right_elbow // 256 > 0 else 0)
 
     # calculate checksum
     checksum = 255 - sum(ja_bytes) % 256
@@ -226,6 +225,50 @@ class SerialConnection(Node):
       self.arduino_port.write(struct.pack('>B', 255))
     for ja_byte in ja_bytes:
       self.arduino_port.write(struct.pack('>B', ja_byte))
+
+    # prep to read serial data
+    read_state = serial_read_states['READ_PREAMBLE']
+    preamble_counter = self.preamble_length
+    calculated_checksum = 0
+
+    # simple deepcopy for dicts with primitives datatypes
+    ack_packet = copy.deepcopy(ack_packet_struct)
+    read_corrupted = False
+
+    # Wait for ack packet
+    while rclpy.ok():
+      if self.arduino_port.in_waiting > 0:
+        # read and decode data from serial buffer
+        read_corrupted = False
+        recv_data = self.arduino_port.read(1)
+        decoded_data = int(recv_data.hex(), 16)
+
+        # run through state machine
+        if read_state == serial_read_states['READ_PREAMBLE']:
+          if decoded_data == 255:
+            preamble_counter -= 1
+            if preamble_counter == 0:
+              preamble_counter = self.preamble_length
+              read_state = serial_read_states['READ_ACK']
+          else:
+            preamble_counter = self.preamble_length
+        elif read_state == serial_read_states['READ_ACK']:
+          ack_packet['at_goal'] = decoded_data
+          calculated_checksum += decoded_data
+          read_state = serial_read_states['READ_CHECKSUM']
+        elif read_state == serial_read_states['READ_CHECKSUM']:
+          ack_packet['checksum'] = decoded_data
+          if ack_packet['checksum'] == 255 - (calculated_checksum % 256):
+            # good packet, relay to tracking node
+            response.setpoint_ack = ack_packet['setpoint_ack']
+            break
+          else:
+            # bad packet, retry request
+            # return self.send_joint_angles_callback(request, response)
+            break
+
+    return response
+
 
 
 
