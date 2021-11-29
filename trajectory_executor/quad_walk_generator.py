@@ -46,12 +46,12 @@ def walk_cycle(num_cycles):
   cycle_time = 8
   subcycle_time = cycle_time / 4
 
-  seq1_x = [(start_x - 80*(math.sin(i*math.pi/50))) for i in range(0, 50)]
-  seq1_y = [i for i in range(start_y, -start_y, -2)]
+  seq1_x = [(start_x - 80*(math.sin(i*math.pi/25))) for i in range(0, 25)]
+  seq1_y = [i for i in range(start_y*2, -start_y*2, -8)]
   seq1 = list(zip(seq1_x, seq1_y))
 
-  seq2_x = [start_x for i in range(-start_y*2, start_y*2)]
-  seq2_y = [i/2 for i in range(-start_y*2, start_y*2)]
+  seq2_x = [start_x for i in range(-start_y*3, start_y*3, 4)]
+  seq2_y = [i/1.5 for i in range(-start_y*3, start_y*3, 4)]
   seq2 = list(zip(seq2_x, seq2_y))
 
   cycle1 = (seq1 + seq2)
@@ -67,10 +67,10 @@ def walk_cycle(num_cycles):
     ja.right_elbow = invert_ja(ik_solver(cycle1[i])[1])
     ja.right_hip = invert_ja(ik_solver(cycle2[i])[0])
     ja.right_knee = invert_ja(ik_solver(cycle2[i])[1])
-    ja.left_hip = ik_solver(cycle3[i])[0]
-    ja.left_knee = ik_solver(cycle3[i])[1]
-    ja.left_shoulder = ik_solver(cycle4[i])[0]
-    ja.left_elbow = ik_solver(cycle4[i])[1]
+    ja.left_hip = ik_solver(cycle4[i])[0]
+    ja.left_knee = ik_solver(cycle4[i])[1]
+    ja.left_shoulder = ik_solver(cycle3[i])[0]
+    ja.left_elbow = ik_solver(cycle3[i])[1]
 
     ja_setpoints.append(ja)
 
