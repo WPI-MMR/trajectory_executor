@@ -197,22 +197,22 @@ class SerialConnection(Node):
     # Split joint angles into two numbers since max value of a byte is 255
     ja_bytes = []
     ja_bytes.append(0) # data request byte
-    ja_bytes.append(255 if req.left_hip // 256 > 0 else req.left_hip)
-    ja_bytes.append(req.left_hip % 255 if req.left_hip // 256 > 0 else 0)
-    ja_bytes.append(255 if req.left_knee // 256 > 0 else req.left_knee)
-    ja_bytes.append(req.left_knee % 255 if req.left_knee // 256 > 0 else 0)
-    ja_bytes.append(255 if req.right_hip // 256 > 0 else req.right_hip)
-    ja_bytes.append(req.right_hip % 255 if req.right_hip // 256 > 0 else 0)
-    ja_bytes.append(255 if req.right_knee // 256 > 0 else req.right_knee)
-    ja_bytes.append(req.right_knee % 255 if req.right_knee // 256 > 0 else 0)
-    ja_bytes.append(255 if req.left_shoulder // 256 > 0 else req.left_shoulder)
-    ja_bytes.append(req.left_shoulder % 255 if req.left_shoulder // 256 > 0 else 0)
-    ja_bytes.append(255 if req.left_elbow // 256 > 0 else req.left_elbow)
-    ja_bytes.append(req.left_elbow % 255 if req.left_elbow // 256 > 0 else 0)
-    ja_bytes.append(255 if req.right_shoulder // 256 > 0 else req.right_shoulder)
-    ja_bytes.append(req.right_shoulder % 255 if req.right_shoulder // 256 > 0 else 0)
-    ja_bytes.append(255 if req.right_elbow // 256 > 0 else req.right_elbow)
-    ja_bytes.append(req.right_elbow % 255 if req.right_elbow // 256 > 0 else 0)
+    ja_bytes.append(255 if req.ja.left_hip // 256 > 0 else req.ja.left_hip)
+    ja_bytes.append(req.ja.left_hip % 255 if req.ja.left_hip // 256 > 0 else 0)
+    ja_bytes.append(255 if req.ja.left_knee // 256 > 0 else req.ja.left_knee)
+    ja_bytes.append(req.ja.left_knee % 255 if req.ja.left_knee // 256 > 0 else 0)
+    ja_bytes.append(255 if req.ja.right_hip // 256 > 0 else req.ja.right_hip)
+    ja_bytes.append(req.ja.right_hip % 255 if req.ja.right_hip // 256 > 0 else 0)
+    ja_bytes.append(255 if req.ja.right_knee // 256 > 0 else req.ja.right_knee)
+    ja_bytes.append(req.ja.right_knee % 255 if req.ja.right_knee // 256 > 0 else 0)
+    ja_bytes.append(255 if req.ja.left_shoulder // 256 > 0 else req.ja.left_shoulder)
+    ja_bytes.append(req.ja.left_shoulder % 255 if req.ja.left_shoulder // 256 > 0 else 0)
+    ja_bytes.append(255 if req.ja.left_elbow // 256 > 0 else req.ja.left_elbow)
+    ja_bytes.append(req.ja.left_elbow % 255 if req.ja.left_elbow // 256 > 0 else 0)
+    ja_bytes.append(255 if req.ja.right_shoulder // 256 > 0 else req.ja.right_shoulder)
+    ja_bytes.append(req.ja.right_shoulder % 255 if req.ja.right_shoulder // 256 > 0 else 0)
+    ja_bytes.append(255 if req.ja.right_elbow // 256 > 0 else req.ja.right_elbow)
+    ja_bytes.append(req.ja.right_elbow % 255 if req.ja.right_elbow // 256 > 0 else 0)
 
     # calculate checksum
     checksum = 255 - sum(ja_bytes) % 256
@@ -253,7 +253,7 @@ class SerialConnection(Node):
           else:
             preamble_counter = self.preamble_length
         elif read_state == serial_read_states['READ_ACK']:
-          ack_packet['at_goal'] = decoded_data
+          ack_packet['setpoint_ack'] = decoded_data
           calculated_checksum += decoded_data
           read_state = serial_read_states['READ_CHECKSUM']
         elif read_state == serial_read_states['READ_CHECKSUM']:

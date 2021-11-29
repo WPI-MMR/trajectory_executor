@@ -1,8 +1,8 @@
 import rclpy
 from rclpy.node import Node
 
-from trajectory_interfaces.msg import Trajectory
-from trajectory_interfaces.srv import SensorDataRequest, JointAngles
+from trajectory_interfaces.msg import Trajectory, JointAngles as JA_MSG
+from trajectory_interfaces.srv import SensorDataRequest, JointAngles as JA_SRV
 
 import serial
 import time
@@ -12,10 +12,10 @@ class TrajectoryTracker(Node):
   """Trajectory tracking for an 8-DOF quadruped robot given a trajectory"""
   def __init__(self):
     super().__init__('trajectory_tracker')
-    self.sd_publisher = self.create_publisher(
-      SensorData,
-      'traj_start_data',
-      10)
+    # self.sd_publisher = self.create_publisher(
+    #   SensorData,
+    #   'traj_start_data',
+    #   10)
 
     # self.ja_publisher = self.create_publisher(
     #   JointAngles,
@@ -23,7 +23,7 @@ class TrajectoryTracker(Node):
     #   10)
 
     self.ja_client = self.create_client(
-      JointAngles, 
+      JA_SRV, 
       'joint_angles')
 
     self.srv_client = self.create_client(
@@ -50,8 +50,8 @@ class TrajectoryTracker(Node):
     self.req.requested = True
     self.future = self.srv_client.call_async(self.req)
 
-  def send_ja(self, ja: JointAngles):
-    self.future = self.ja_client.call_async(ja)
+  def send_ja(self, ja_req: JA_SRV.Request):
+    self.future = self.ja_client.call_async(ja_req)
 
   def new_traj_callback(self, msg: Trajectory):
     """Receive trajectory from generator node"""
@@ -69,9 +69,11 @@ def main(args=None):
     rclpy.spin_once(trajectory_tracker)
     if trajectory_tracker.traj_queued:
       trajectory_tracker.get_logger().info("Executing...")
+      ja_req = JA_SRV.Request()
       for ja in trajectory_tracker.traj.traj:
         goal = False
-        trajectory_tracker.send_ja(ja)
+        ja_req.ja = ja
+        trajectory_tracker.send_ja(ja_req)
         trajectory_tracker.get_logger().info(f"R_SH: {ja.right_shoulder}")
         trajectory_tracker.get_logger().info(f"R_EL: {ja.right_elbow}")
 
@@ -84,14 +86,17 @@ def main(args=None):
               trajectory_tracker.get_logger().info(f"Failed to get ack: {e}")
             else:
               if response.setpoint_ack == 1:
-                trajectory_tracker.get_logger().info(f"Ack reported success")
+                trajectory_tracker.get_logger().info("Ack reported success")
                 break
               elif response.setpoint_ack == 2:
-                trajectory_tracker.get_logger().info(f"Ack reported malformed packet... Retrying")
-                trajectory_tracker.send_ja(ja)
+                trajectory_tracker.get_logger().info("Ack reported malformed packet... Retrying")
+                trajectory_tracker.send_ja(ja_req)
+              else:
+                trajectory_tracker.get_logger().info("Something went wrong...")
 
         # time.sleep(0.1)
         while rclpy.ok():
+          trajectory_tracker.get_logger().info("Waiting for move complete...")
           trajectory_tracker.send_request()
           while rclpy.ok():
             rclpy.spin_once(trajectory_tracker)
