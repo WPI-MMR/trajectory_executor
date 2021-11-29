@@ -88,9 +88,6 @@ def main(args=None):
               if response.setpoint_ack == 1:
                 trajectory_tracker.get_logger().info("Ack reported success")
                 break
-              elif response.setpoint_ack == 2:
-                trajectory_tracker.get_logger().info("Ack reported malformed packet... Retrying")
-                trajectory_tracker.send_ja()
               else:
                 trajectory_tracker.get_logger().info("Something went wrong... Retrying")
                 trajectory_tracker.send_ja()
