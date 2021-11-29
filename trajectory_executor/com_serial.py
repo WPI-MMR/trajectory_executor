@@ -98,7 +98,11 @@ class SerialConnection(Node):
           data_byte_counter -= 1
           if data_byte_counter == 0:
             data_byte_counter = self.data_byte_length
-            read_state = serial_read_states['READ_L_HIP']
+            read_state = serial_read_states['READ_ACK']
+        elif read_state == serial_read_states['READ_ACK']:
+          data_packet['setpoint_ack'] = decoded_data
+          calculated_checksum += decoded_data
+          read_state = serial_read_states['READ_L_HIP']
         elif read_state == serial_read_states['READ_L_HIP']:
           data_packet['l_hip'] += decoded_data
           calculated_checksum += decoded_data
@@ -179,6 +183,7 @@ class SerialConnection(Node):
           else:
             # bad packet, retry request
             # return self.sensor_data_request_callback(request, response)
+            self.get_logger().info("Bad request")
             break
 
       else:
@@ -242,6 +247,7 @@ class SerialConnection(Node):
         read_corrupted = False
         recv_data = self.arduino_port.read(1)
         decoded_data = int(recv_data.hex(), 16)
+        self.get_logger().info(f"Got byte: {decoded_data}")
 
         # run through state machine
         if read_state == serial_read_states['READ_PREAMBLE']:
@@ -267,6 +273,7 @@ class SerialConnection(Node):
             # return self.send_joint_angles_callback(request, response)
             break
 
+    self.get_logger().info(f"Got response: {response}")
     return response
 
 

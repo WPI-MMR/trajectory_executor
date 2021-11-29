@@ -21,6 +21,7 @@ data_packet_struct = {
   'roll': 0,
   'pitch': 0,
   'yaw': 0,
+  'setpoint_ack': 0,
   'l_hip': 0,
   'l_knee': 0,
   'r_hip': 0,

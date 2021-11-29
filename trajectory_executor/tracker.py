@@ -39,6 +39,7 @@ class TrajectoryTracker(Node):
     while not self.srv_client.wait_for_service(timeout_sec=1.0):
       self.get_logger().info("Serial service inactive, waiting...")
 
+    self.ja_req = JA_SRV.Request()
     self.req = SensorDataRequest.Request()
     self.traj = Trajectory()
     self.traj_queued = False
@@ -50,8 +51,8 @@ class TrajectoryTracker(Node):
     self.req.requested = True
     self.future = self.srv_client.call_async(self.req)
 
-  def send_ja(self, ja_req: JA_SRV.Request):
-    self.future = self.ja_client.call_async(ja_req)
+  def send_ja(self):
+    self.future = self.ja_client.call_async(self.ja_req)
 
   def new_traj_callback(self, msg: Trajectory):
     """Receive trajectory from generator node"""
@@ -69,11 +70,10 @@ def main(args=None):
     rclpy.spin_once(trajectory_tracker)
     if trajectory_tracker.traj_queued:
       trajectory_tracker.get_logger().info("Executing...")
-      ja_req = JA_SRV.Request()
       for ja in trajectory_tracker.traj.traj:
         goal = False
-        ja_req.ja = ja
-        trajectory_tracker.send_ja(ja_req)
+        trajectory_tracker.ja_req.ja = ja
+        trajectory_tracker.send_ja()
         trajectory_tracker.get_logger().info(f"R_SH: {ja.right_shoulder}")
         trajectory_tracker.get_logger().info(f"R_EL: {ja.right_elbow}")
 
@@ -90,9 +90,10 @@ def main(args=None):
                 break
               elif response.setpoint_ack == 2:
                 trajectory_tracker.get_logger().info("Ack reported malformed packet... Retrying")
-                trajectory_tracker.send_ja(ja_req)
+                trajectory_tracker.send_ja()
               else:
-                trajectory_tracker.get_logger().info("Something went wrong...")
+                trajectory_tracker.get_logger().info("Something went wrong... Retrying")
+                trajectory_tracker.send_ja()
 
         # time.sleep(0.1)
         while rclpy.ok():
