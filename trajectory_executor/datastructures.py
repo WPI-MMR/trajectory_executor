@@ -21,7 +21,6 @@ data_packet_struct = {
   'roll': 0,
   'pitch': 0,
   'yaw': 0,
-  'setpoint_ack': 0,
   'l_hip': 0,
   'l_knee': 0,
   'r_hip': 0,
@@ -31,6 +30,7 @@ data_packet_struct = {
   'r_shoulder': 0,
   'r_elbow': 0,
   'at_goal': 0,
+  'setpoint_ack': 0,
   'checksum': 0,
 }
 
