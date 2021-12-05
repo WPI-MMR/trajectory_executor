@@ -65,10 +65,10 @@ def walk_cycle(num_cycles):
     ja = JointAngles()
     ja.right_shoulder = invert_ja(ik_solver(cycle1[i])[0])
     ja.right_elbow = invert_ja(ik_solver(cycle1[i])[1])
-    ja.right_hip = invert_ja(ik_solver(cycle2[i])[0])
-    ja.right_knee = invert_ja(ik_solver(cycle2[i])[1])
-    ja.left_hip = ik_solver(cycle4[i])[0]
-    ja.left_knee = ik_solver(cycle4[i])[1]
+    ja.right_hip = invert_ja(rear_ik_solver(cycle2[i])[0])
+    ja.right_knee = invert_ja(rear_ik_solver(cycle2[i])[1])
+    ja.left_hip = rear_ik_solver(cycle4[i])[0]
+    ja.left_knee = rear_ik_solver(cycle4[i])[1]
     ja.left_shoulder = ik_solver(cycle3[i])[0]
     ja.left_elbow = ik_solver(cycle3[i])[1]
 
@@ -105,6 +105,37 @@ def ik_solver(coord):
     theta22 += 360
 
   return (int(theta12), int(theta22))
+
+def rear_ik_solver(coord):
+  ja = JointAngles()
+  print(coord)
+  x = coord[0]
+  y = coord[1]
+
+  p = x**2 + y**2 - l12**2 - l22**2
+  q = 2 * l12 * l22
+
+  a = p / q
+  if a > 1:
+    a = 1
+  elif a < -1:
+    a = -1
+
+  theta22 = math.acos(a)
+
+  k = (l22 * math.sin(theta22)) / (l12 + l22 * math.cos(theta22))
+  theta12 = math.atan(y / x) - math.atan(k)
+
+  theta12 = theta12 * 180 / math.pi
+  theta22 = theta22 * 180 / math.pi
+
+  if theta12 < 0:
+    theta12 += 360
+  if theta22 < 0:
+    theta22 += 360
+
+  return (int(theta12), int(theta22))
+
 
 def invert_ja(ja):
   return 0 - ja + 360
