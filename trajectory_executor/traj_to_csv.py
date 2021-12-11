@@ -17,10 +17,11 @@ class TrajToCSV(Node):
       10)
 
   def traj_callback(self, traj: Trajectory):
+    self.get_logger().info("Received trajectory")
     jas = traj.traj
 
     with open('trajectory.csv', 'w', newline='') as csvfile:
-      file_writer = csv.writer(csvfile, delimiter=' ', quotechar='|', quoting=csv.QUOTE_MINIMAL)
+      file_writer = csv.writer(csvfile, delimiter='\t', quotechar='|', quoting=csv.QUOTE_MINIMAL)
 
       # add header row
       file_writer.writerow(['l_hip', 'l_knee', 'r_hip', 'r_knee', 'l_shoulder', 'l_elbow', 'r_shoulder', 'r_elbow'])
@@ -28,6 +29,8 @@ class TrajToCSV(Node):
       # add data
       for ja in jas:
         file_writer.writerow(self.ja_to_list(ja))
+
+    self.get_logger().info("Output complete")
 
 
   def ja_to_list(self, ja: JointAngles):
