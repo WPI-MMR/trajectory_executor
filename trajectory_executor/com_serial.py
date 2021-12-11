@@ -259,7 +259,6 @@ class SerialConnection(Node):
         else:
           read_corrupted = True # gives a second chance in case we just missed a beat
 
-    print(data_packet)
     return data_packet
 
 
