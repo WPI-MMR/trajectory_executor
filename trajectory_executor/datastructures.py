@@ -30,7 +30,6 @@ data_packet_struct = {
   'r_shoulder': 0,
   'r_elbow': 0,
   'at_goal': 0,
-  'setpoint_ack': 0,
   'checksum': 0,
 }
 
