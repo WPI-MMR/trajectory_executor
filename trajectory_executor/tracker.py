@@ -85,7 +85,7 @@ def main(args=None):
             except Exception as e:
               trajectory_tracker.get_logger().info(f"Failed to get ack: {e}")
             else:
-              if response.setpoint_ack == 1:
+              if response.setpoint_ack == 0:
                 trajectory_tracker.get_logger().info("Ack reported success")
                 break
               else:

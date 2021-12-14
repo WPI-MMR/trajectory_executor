@@ -38,7 +38,7 @@ class SerialConnection(Node):
     )
 
     self.ja_port = serial.Serial(
-      port='/dev/ttyAMA2',
+      port="/dev/ttyAMA2",
       baudrate=115200
     )
 
@@ -200,7 +200,7 @@ class SerialConnection(Node):
     # self.get_logger().info("Sending joint angles")
     # Split joint angles into two numbers since max value of a byte is 255
     ja_bytes = []
-    ja_bytes.append(0) # data request byte
+    # ja_bytes.append(0) # data request byte
     ja_bytes.append(255 if req.ja.left_hip // 256 > 0 else req.ja.left_hip)
     ja_bytes.append(req.ja.left_hip % 255 if req.ja.left_hip // 256 > 0 else 0)
     ja_bytes.append(255 if req.ja.left_knee // 256 > 0 else req.ja.left_knee)
