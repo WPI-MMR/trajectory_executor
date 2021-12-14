@@ -34,12 +34,12 @@ class SerialConnection(Node):
 
     self.data_port = serial.Serial(
       port="/dev/ttyAMA1",  # TODO: evaluate if we should change to cli flag
-      baudrate=115200
+      baudrate=2000000
     )
 
     self.ja_port = serial.Serial(
       port="/dev/ttyAMA2",
-      baudrate=115200
+      baudrate=2000000
     )
 
   def sensor_data_request_callback(self, request: SensorDataRequest, response: SensorDataRequest):
