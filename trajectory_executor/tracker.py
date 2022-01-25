@@ -48,8 +48,8 @@ class TrajectoryTracker(Node):
       self.new_traj_callback,
       10)
 
-    while not self.srv_client.wait_for_service(timeout_sec=1.0):
-      self.get_logger().info("Serial service inactive, waiting...")
+    # while not self.srv_client.wait_for_service(timeout_sec=1.0):
+    #   self.get_logger().info("Serial service inactive, waiting...")
 
     # self.ja_req = JA_SRV.Request()
     # self.req = SensorDataRequest.Request()

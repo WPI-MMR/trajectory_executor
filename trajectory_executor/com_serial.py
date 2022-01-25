@@ -277,7 +277,8 @@ class SerialConnection(Node):
           else:
             # bad packet, retry request
             # return self.sensor_data_request_callback(request, response)
-            self.get_logger().info("Bad request")
+            internal_checksum = 255 - (calculated_checksum % 256)
+            self.get_logger().info(f"Bad request: Received checksum {data_packet['checksum']} but expected {internal_checksum}")
             break
 
       else:
