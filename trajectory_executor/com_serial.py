@@ -1,8 +1,8 @@
 import rclpy
 from rclpy.node import Node
 
-from trajectory_interfaces.srv import SensorDataRequest, JointAngles
-# from trajectory_interfaces.msg import JointAngles
+# from trajectory_interfaces.srv import SensorDataRequest, JointAngles
+from trajectory_interfaces.msg import JointAngles, AckResponse, DataRequest, DataResponse
 
 import serial
 import struct
@@ -20,24 +20,46 @@ class SerialConnection(Node):
     self.data_byte_length = 2
     self.port_in_use = False
 
-    self.data_service = self.create_service(
-      SensorDataRequest,
-      'sensor_data_request',
-      self.sensor_data_request_callback
-    )
+    self.dr_publisher = self.create_publisher(
+      DataResponse,
+      'data_response',
+      10)
 
-    self.ja_service = self.create_service(
+    self.ja_publisher = self.create_publisher(
+      AckResponse,
+      'ack_response',
+      10)
+
+    self.dr_subscription = self.create_subscription(
+      DataRequest,
+      'data_request',
+      self.sensor_data_request_callback,
+      10)
+
+    self.ja_subscription = self.create_subscription(
       JointAngles,
       'joint_angles',
       self.send_joint_angles_callback,
-    )
+      10)
+
+    # self.data_service = self.create_service(
+    #   SensorDataRequest,
+    #   'sensor_data_request',
+    #   self.sensor_data_request_callback
+    # )
+
+    # self.ja_service = self.create_service(
+    #   JointAngles,
+    #   'joint_angles',
+    #   self.send_joint_angles_callback,
+    # )
 
     self.arduino_port = serial.Serial(
       port="/dev/ttyAMA1",  # TODO: evaluate if we should change to cli flag
       baudrate=115200
     )
 
-  def sensor_data_request_callback(self, request: SensorDataRequest, response: SensorDataRequest):
+  def sensor_data_request_callback(self, msg: DataRequest):
     """Ping Arduino for sensor data"""
     # self.get_logger().info("Requesting robot state")
 
@@ -61,24 +83,27 @@ class SerialConnection(Node):
 
     ser_in = self.read_ser()
 
-    response.roll = ser_in['roll']
-    response.pitch = ser_in['pitch']
-    response.yaw = ser_in['yaw']
-    response.l_hip = ser_in['l_hip']
-    response.l_knee = ser_in['l_hip']
-    response.r_hip = ser_in['r_hip']
-    response.r_knee = ser_in['r_hip']
-    response.l_shoulder = ser_in['l_shoulder']
-    response.l_elbow = ser_in['l_elbow']
-    response.r_shoulder = ser_in['r_shoulder']
-    response.r_elbow = ser_in['r_elbow']
-    response.at_goal = ser_in['at_goal']
+    data = DataResponse()
+    data.roll = ser_in['roll']
+    data.pitch = ser_in['pitch']
+    data.yaw = ser_in['yaw']
+    data.l_hip = ser_in['l_hip']
+    data.l_knee = ser_in['l_hip']
+    data.r_hip = ser_in['r_hip']
+    data.r_knee = ser_in['r_hip']
+    data.l_shoulder = ser_in['l_shoulder']
+    data.l_elbow = ser_in['l_elbow']
+    data.r_shoulder = ser_in['r_shoulder']
+    data.r_elbow = ser_in['r_elbow']
+    data.at_goal = ser_in['at_goal']
+
+    self.dr_publisher.publish(data)
 
     # release serial port for other processes to use
     self.port_in_use = False
-    return response
+    # return response
 
-  def send_joint_angles_callback(self, req: JointAngles, response: JointAngles):
+  def send_joint_angles_callback(self, msg: JointAngles):
     """Send new joint angles to Arduino for execution"""
     # self.get_logger().info("Sending joint angles")
 
@@ -92,22 +117,22 @@ class SerialConnection(Node):
     # Split joint angles into two numbers since max value of a byte is 255
     ja_bytes = []
     ja_bytes.append(0) # data request byte
-    ja_bytes.append(255 if req.ja.left_hip // 256 > 0 else req.ja.left_hip)
-    ja_bytes.append(req.ja.left_hip % 255 if req.ja.left_hip // 256 > 0 else 0)
-    ja_bytes.append(255 if req.ja.left_knee // 256 > 0 else req.ja.left_knee)
-    ja_bytes.append(req.ja.left_knee % 255 if req.ja.left_knee // 256 > 0 else 0)
-    ja_bytes.append(255 if req.ja.right_hip // 256 > 0 else req.ja.right_hip)
-    ja_bytes.append(req.ja.right_hip % 255 if req.ja.right_hip // 256 > 0 else 0)
-    ja_bytes.append(255 if req.ja.right_knee // 256 > 0 else req.ja.right_knee)
-    ja_bytes.append(req.ja.right_knee % 255 if req.ja.right_knee // 256 > 0 else 0)
-    ja_bytes.append(255 if req.ja.left_shoulder // 256 > 0 else req.ja.left_shoulder)
-    ja_bytes.append(req.ja.left_shoulder % 255 if req.ja.left_shoulder // 256 > 0 else 0)
-    ja_bytes.append(255 if req.ja.left_elbow // 256 > 0 else req.ja.left_elbow)
-    ja_bytes.append(req.ja.left_elbow % 255 if req.ja.left_elbow // 256 > 0 else 0)
-    ja_bytes.append(255 if req.ja.right_shoulder // 256 > 0 else req.ja.right_shoulder)
-    ja_bytes.append(req.ja.right_shoulder % 255 if req.ja.right_shoulder // 256 > 0 else 0)
-    ja_bytes.append(255 if req.ja.right_elbow // 256 > 0 else req.ja.right_elbow)
-    ja_bytes.append(req.ja.right_elbow % 255 if req.ja.right_elbow // 256 > 0 else 0)
+    ja_bytes.append(255 if msg.left_hip // 256 > 0 else msg.left_hip)
+    ja_bytes.append(msg.left_hip % 255 if msg.left_hip // 256 > 0 else 0)
+    ja_bytes.append(255 if msg.left_knee // 256 > 0 else msg.left_knee)
+    ja_bytes.append(msg.left_knee % 255 if msg.left_knee // 256 > 0 else 0)
+    ja_bytes.append(255 if msg.right_hip // 256 > 0 else msg.right_hip)
+    ja_bytes.append(msg.right_hip % 255 if msg.right_hip // 256 > 0 else 0)
+    ja_bytes.append(255 if msg.right_knee // 256 > 0 else msg.right_knee)
+    ja_bytes.append(msg.right_knee % 255 if msg.right_knee // 256 > 0 else 0)
+    ja_bytes.append(255 if msg.left_shoulder // 256 > 0 else msg.left_shoulder)
+    ja_bytes.append(msg.left_shoulder % 255 if msg.left_shoulder // 256 > 0 else 0)
+    ja_bytes.append(255 if msg.left_elbow // 256 > 0 else msg.left_elbow)
+    ja_bytes.append(msg.left_elbow % 255 if msg.left_elbow // 256 > 0 else 0)
+    ja_bytes.append(255 if msg.right_shoulder // 256 > 0 else msg.right_shoulder)
+    ja_bytes.append(msg.right_shoulder % 255 if msg.right_shoulder // 256 > 0 else 0)
+    ja_bytes.append(255 if msg.right_elbow // 256 > 0 else msg.right_elbow)
+    ja_bytes.append(msg.right_elbow % 255 if msg.right_elbow // 256 > 0 else 0)
 
     # calculate checksum
     checksum = 255 - sum(ja_bytes) % 256
@@ -122,11 +147,14 @@ class SerialConnection(Node):
       self.arduino_port.write(struct.pack('>B', ja_byte))
 
     ser_in = self.read_ser()
-    response.setpoint_ack = ser_in['setpoint_ack']
+
+    ack = AckResponse()
+    ack.setpoint_ack = ser_in['setpoint_ack']
+    self.ja_publisher.publish(ack)
 
     # release serial port for other processes to use
     self.port_in_use = False
-    return response
+    # return response
 
   def read_ser(self):
     # prep to read serial data
