@@ -43,15 +43,16 @@ def main(args=None):
 def walk_cycle(num_cycles):
   start_x = 250
   start_y = 50
+  y_offset = 45 # mm
   cycle_time = 8
   subcycle_time = cycle_time / 4
 
   seq1_x = [(start_x - 80*(math.sin(i*math.pi/25))) for i in range(0, 25)]
-  seq1_y = [i for i in range(start_y*2, -start_y*2, -8)]
+  seq1_y = [i + y_offset for i in range(start_y*2, -start_y*2, -8)]
   seq1 = list(zip(seq1_x, seq1_y))
 
   seq2_x = [start_x for i in range(-start_y*3, start_y*3, 4)]
-  seq2_y = [i/1.5 for i in range(-start_y*3, start_y*3, 4)]
+  seq2_y = [i/1.5 + y_offset for i in range(-start_y*3, start_y*3, 4)]
   seq2 = list(zip(seq2_x, seq2_y))
 
   cycle1 = (seq1 + seq2)
