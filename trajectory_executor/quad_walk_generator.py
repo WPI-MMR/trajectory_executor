@@ -72,6 +72,8 @@ def walk_cycle(num_cycles):
     ja.left_knee = rear_ik_solver(cycle4[i])[1]
     ja.left_shoulder = ik_solver(cycle3[i])[0]
     ja.left_elbow = ik_solver(cycle3[i])[1]
+    ja.left_ankle = 1
+    ja.right_ankle = 1
 
     ja_setpoints.append(ja)
 

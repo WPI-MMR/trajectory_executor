@@ -176,6 +176,7 @@ class SerialConnection(Node):
             response.r_shoulder = data_packet['r_shoulder']
             response.r_elbow = data_packet['r_elbow']
             response.at_goal = data_packet['at_goal']
+            print(data_packet)
             break
           else:
             # bad packet, retry request
@@ -214,6 +215,8 @@ class SerialConnection(Node):
     ja_bytes.append(msg.right_shoulder % 255 if msg.right_shoulder // 256 > 0 else 0)
     ja_bytes.append(255 if msg.right_elbow // 256 > 0 else msg.right_elbow)
     ja_bytes.append(msg.right_elbow % 255 if msg.right_elbow // 256 > 0 else 0)
+    ja_bytes.append(msg.left_ankle)
+    ja_bytes.append(msg.right_ankle)
 
     # calculate checksum
     checksum = 255 - sum(ja_bytes) % 256

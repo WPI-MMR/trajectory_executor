@@ -39,6 +39,8 @@ def main(args=None):
   home_ja.right_knee = 0
   home_ja.left_shoulder = 0
   home_ja.left_elbow = 0
+  home_ja.left_ankle = 0
+  home_ja.right_ankle = 0
 
   traj = Trajectory()
   traj.traj = [home_ja]

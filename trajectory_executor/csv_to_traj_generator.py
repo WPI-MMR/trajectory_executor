@@ -51,6 +51,8 @@ def read_csv():
       ja.left_knee = invert_ja(int(float(row[fields_indices['l_knee']])))
       ja.left_shoulder = int(float(row[fields_indices['l_shoulder']]))
       ja.left_elbow = int(float(row[fields_indices['l_elbow']]))
+      ja.left_ankle = 1
+      ja.right_ankle = 1
       ja_setpoints.append(ja)
 
     return ja_setpoints
