@@ -176,7 +176,6 @@ class SerialConnection(Node):
             response.r_shoulder = data_packet['r_shoulder']
             response.r_elbow = data_packet['r_elbow']
             response.at_goal = data_packet['at_goal']
-            print(data_packet)
             break
           else:
             # bad packet, retry request

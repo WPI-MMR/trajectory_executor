@@ -33,7 +33,7 @@ def main(args=None):
   rclpy.shutdown()
 
 def read_csv():
-  with open('standing_traj.csv', 'r') as infile:
+  with open('standing_traj_v1.csv', 'r') as infile:
     csvreader = csv.reader(infile)
     fields_indices = {}
     fields = next(csvreader)
@@ -55,6 +55,7 @@ def read_csv():
       ja.right_ankle = 1
       ja_setpoints.append(ja)
 
+    print(len(ja_setpoints))
     return ja_setpoints
 
 def ik_solver(coord):

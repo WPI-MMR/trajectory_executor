@@ -22,7 +22,8 @@ and so on...
 
 # Defining lengths and offsets
 l11 = 160      #hip to knee length
-l21 = 160      #knee to ankle length
+# l21 = 160      #knee to ankle length
+l21 = 173.5    #knee to point contact
 l3 = 39        #ankle to toe length
 d1 = 37        #hip offset
 d2 = 12.95     #knee offset
@@ -49,7 +50,7 @@ and so on...
 
 # Defining lengths and offsets
 l12 = 160      #hip to knee length
-l22 = 173.5    #knee to ankle length
+l22 = 173.5    #knee to point contact
 
 # theta12, alpha12, theta22, alpha22 = symbols("theta12 alpha12 theta22 alpha22")
 # theta13, alpha13, theta23, alpha23 = symbols("theta13 alpha13 theta23 alpha23")
