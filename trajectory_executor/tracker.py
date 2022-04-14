@@ -74,9 +74,10 @@ def main(args=None):
         trajectory_tracker.ja_publisher.publish(ja)
         # trajectory_tracker.get_logger().info(f"R_SH: {ja.right_shoulder}")
         # trajectory_tracker.get_logger().info(f"R_EL: {ja.right_elbow}")
-        time.sleep(0.1)
+        time.sleep(0.05)
         while rclpy.ok():
           trajectory_tracker.send_request()
+          time.sleep(0.05)
           while rclpy.ok():
             rclpy.spin_once(trajectory_tracker)
             if trajectory_tracker.future.done():
