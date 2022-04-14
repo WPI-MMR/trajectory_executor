@@ -31,6 +31,7 @@ setup(
             'quad_walk_generator = trajectory_executor.quad_walk_generator:main',
             'move_home = trajectory_executor.move_home:main',
             'csv_to_traj_generator = trajectory_executor.csv_to_traj_generator:main',
+            'csv_pose_picker = trajectory_executor.csv_pose_picker:main',
         ],
     },
 )

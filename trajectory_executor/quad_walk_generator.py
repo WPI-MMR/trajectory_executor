@@ -72,8 +72,8 @@ def walk_cycle(num_cycles):
     ja.left_knee = rear_ik_solver(cycle4[i])[1]
     ja.left_shoulder = ik_solver(cycle3[i])[0]
     ja.left_elbow = ik_solver(cycle3[i])[1]
-    ja.left_ankle = 0
-    ja.right_ankle = 0
+    ja.left_ankle = 95 # 92 is the "zero" position for the servos
+    ja.right_ankle = 95 # 92 is the "zero" position for the servos
 
     ja_setpoints.append(ja)
 
