@@ -33,7 +33,7 @@ def main(args=None):
   rclpy.shutdown()
 
 def read_csv():
-  with open('standing_traj_v1.csv', 'r') as infile:
+  with open('standing_traj_v2.csv', 'r') as infile:
     csvreader = csv.reader(infile)
     fields_indices = {}
     fields = next(csvreader)
@@ -45,7 +45,7 @@ def read_csv():
     for row in csvreader:
       raw_setpoint.append(row)
 
-    setpoint = raw_setpoint[60]
+    setpoint = raw_setpoint[0]
 
     ja = JointAngles()
     ja.right_shoulder = invert_ja(int(float(setpoint[fields_indices['r_shoulder']])))
@@ -56,8 +56,8 @@ def read_csv():
     ja.left_knee = invert_ja(int(float(setpoint[fields_indices['l_knee']])))
     ja.left_shoulder = int(float(setpoint[fields_indices['l_shoulder']]))
     ja.left_elbow = int(float(setpoint[fields_indices['l_elbow']]))
-    ja.left_ankle = int(float(setpoint[fields_indices['l_ankle']]))+90
-    ja.right_ankle = int(float(setpoint[fields_indices['r_ankle']]))+90
+    ja.left_ankle = int(float(setpoint[fields_indices['l_ankle']]))
+    ja.right_ankle = int(float(setpoint[fields_indices['r_ankle']]))
     ja_setpoints.append(ja)
 
     print(len(raw_setpoint))
